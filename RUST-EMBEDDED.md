@@ -260,7 +260,7 @@ Understanding whether a GPIO pin uses an active high or active low state is cruc
 
 Configuring **General Purpose Input/Output (GPIO)** pins in embedded Rust involves several systematic steps to ensure proper interaction between the microcontroller and external devices. The process leverages Rust's safety features and patterns, such as the singleton pattern, to manage hardware resources efficiently.
 
-#### **Step 1: Take the Peripherals**
+#### ** Take the Peripherals**
 - **Singleton Pattern:** Ensures only one instance of each peripheral exists throughout the application.
 - **Implementation:**
   ```rust
@@ -268,7 +268,7 @@ Configuring **General Purpose Input/Output (GPIO)** pins in embedded Rust involv
   ```
     - `Peripherals::take()` returns an `Option`, ensuring that subsequent calls return `None`, maintaining a single instance.
 
-#### **Step 2: Configure Pin Direction**
+#### ** Configure Pin Direction**
 - **PinDriver Struct:** Utilized to set a pin as either **input** or **output**.
 - **Options:**
     1. **Input Configuration:**
@@ -284,7 +284,7 @@ Configuring **General Purpose Input/Output (GPIO)** pins in embedded Rust involv
 
 - **Type Safety:** Pins have specific types (`Input` or `Output`) that restrict available methods based on their configuration.
 
-#### **Step 3a: Configure Pin Pull (Input Pins Only)**
+#### ** Configure Pin Pull (Input Pins Only)**
 - **Pull-Up/Pull-Down Resistors:** Stabilize input pin states.
 - **Method:**
   ```rust
@@ -292,7 +292,7 @@ Configuring **General Purpose Input/Output (GPIO)** pins in embedded Rust involv
   some_other_pin.set_pull(Pull::Down).unwrap(); // Pull-down configuration
   ```
 
-#### **Step 3b: Configure Pin Drive (Output Pins Only)**
+#### **Configure Pin Drive (Output Pins Only)**
 - **Drive Modes:**
     - **Push-Pull (Default):** Can drive the pin both high and low.
     - **Open-Drain:** Can only pull the pin low.
@@ -305,7 +305,7 @@ Configuring **General Purpose Input/Output (GPIO)** pins in embedded Rust involv
   PinDriver::output_od(device_per.pins.gpioX).unwrap();
   ```
 
-#### **Step 4a: Configure Interrupt Type (Input Pins Only)**
+#### **Configure Interrupt Type (Input Pins Only)**
 - **Interrupt Detection Types:**
     - **Edge-Triggered:** Detects rising, falling, or both edges.
     - **Level-Triggered:** Detects high or low voltage levels.
@@ -318,7 +318,7 @@ Configuring **General Purpose Input/Output (GPIO)** pins in embedded Rust involv
   some_pin.set_interrupt_type(InterruptType::HighLevel).unwrap();
   ```
 
-#### **Step 4b: Configure Drive Strength (Output Pins Only)**
+#### **Configure Drive Strength (Output Pins Only)**
 - **Drive Strength Options:** Varying current capabilities (e.g., 5mA, 10mA, 20mA, 40mA).
 - **Configuration Example:**
   ```rust
@@ -356,7 +356,7 @@ Configuring **General Purpose Input/Output (GPIO)** pins in embedded Rust involv
 3. **Reading Input by Interrupts:**
     - **Interrupt Service Routines (ISRs):** Functions triggered by specific GPIO events.
     - **Configuration Steps:**
-        1. **Set Interrupt Type** (as in Step 4a).
+        1. **Set Interrupt Type**.
         2. **Subscribe ISR to Interrupt:**
            ```rust
            unsafe { some_pin.subscribe(gpio_int_callback).unwrap() }
@@ -390,7 +390,7 @@ Configuring **General Purpose Input/Output (GPIO)** pins in embedded Rust involv
 
 # GPIO (no-std)
 
-#### Step 1: Initialize the ESP & Gain Access to Peripherals
+#### Initialize the ESP & Gain Access to Peripherals
 
 Before utilizing any device peripherals, it's essential to configure the ESP device itself. This involves setting up the device clocks and gaining access to peripheral instances using the singleton pattern, which ensures that only one instance of each peripheral is accessed throughout the application. The `esp-hal` crate facilitates this initialization with a streamlined approach.
 
@@ -409,7 +409,7 @@ pub struct Config {
 
 This configuration struct allows for customization of system parameters such as CPU clock speed and watchdog settings, although the default values are typically sufficient for basic applications.
 
-#### Step 2: Create an IO Driver
+#### Create an IO Driver
 
 To control GPIO pins, an IO driver must be instantiated. The `esp_hal::gpio` module provides the `Io` struct, which serves as the driver for managing individual IO pins.
 
@@ -419,7 +419,7 @@ let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
 
 This code creates a new IO driver instance by passing the GPIO and IO_MUX peripherals obtained during initialization. The IO driver provides access to the individual GPIO pins for further configuration.
 
-#### Step 3: Configure Pin Direction
+#### Configure Pin Direction
 
 After establishing the IO driver, each GPIO pin must be configured as either an input or an output. This configuration determines how the pin will interact with external components.
 
@@ -451,7 +451,7 @@ let some_output_pin = Output::new(io.pins.gpio3, Level::Low);
 
 Here, GPIO3 is set as an output with an initial low level. The push-pull configuration allows the pin to actively drive the signal both high and low.
 
-#### Step 4 (Output Pins Only): Configure Drive Strength
+#### (Output Pins Only): Configure Drive Strength
 
 While optional, configuring the drive strength of output pins can be necessary for applications requiring higher current levels. This is done using the `set_drive_strength` method, which selects the desired drive strength from the available options.
 
@@ -535,19 +535,19 @@ fn gpio() {
 
 #[entry]
 fn main() -> ! {
-    // Step 1: Take Peripherals & Configure Device
+    // Take Peripherals & Configure Device
     let peripherals = esp_hal::init(esp_hal::Config::default());
-    // Step 2: Create IO Driver
+    // Create IO Driver
     let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
 
     // Interrupt Configuration
-    // Step 1: Register interrupt handler
+    // Register interrupt handler
     io.set_interrupt_handler(gpio);
-    // Step 2: Configure pin direction
+    // Configure pin direction
     let some_pin = Input::new(io.pins.gpio0, Pull::Up);
-    // Step 3: Configure input to trigger an interrupt on the falling edge and start listening to events
+    // Configure input to trigger an interrupt on the falling edge and start listening to events
     some_pin.listen(Event::FallingEdge);
-    // Step 4: Now that pin is configured, move the pin to the global context
+    // Now that pin is configured, move the pin to the global context
     critical_section::with(|cs| G_PIN.borrow_ref_mut(cs).replace(some_pin));
 
     // Following Application Code
@@ -594,10 +594,10 @@ ADCs support various conversion modes to accommodate different application needs
 
 ### Configuring ADCs
 
-#### Step 1: Take the Peripherals
+#### Take the Peripherals
 The initial step in configuring Analog-to-Digital Converters (ADCs) involves initializing the necessary peripherals, akin to the process used for setting up General-Purpose Input/Output (GPIO) pins. This setup is essential for all peripherals involved in ADC operation and ensures that each component is correctly prepared before moving on to subsequent configuration stages.
 
-#### Step 2: Configure an ADC Instance
+#### Configure an ADC Instance
 Not all pins on a microcontroller support analog functions. For the ESP32-C3, specific analog pins are mapped to particular ADC instances, as detailed in the device’s reference manual. For example, using GPIO4 requires configuring ADC1. Multiple pins can share the same ADC instance through an internal multiplexer, allowing a single ADC to handle multiple input channels efficiently. Configuration is performed using the `AdcDriver::new` method, which initializes the desired ADC instance.
 
 ```rust
@@ -606,7 +606,7 @@ let adc1 = AdcDriver::new(peripherals.adc1).unwrap();
 ```
 This code snippet demonstrates how to instantiate ADC1 using the `AdcDriver::new` method, preparing it for subsequent configurations.
 
-#### Step 3: Configure ADC Pin(s)/Channel(s)
+#### Configure ADC Pin(s)/Channel(s)
 After instantiating the ADC, the next step is to configure the specific pins or channels to be used. This involves setting the pin to analog mode and configuring additional parameters such as attenuation and resolution.
 
 - **Attenuation** reduces the input signal’s amplitude to fit within the ADC’s reference voltage range. The ESP32-C3 offers four attenuation options:
@@ -670,7 +670,7 @@ Configuring and interacting with ADCs on the ESP32-C3 involves several key steps
 
 # ADCs (no-std)
 
-#### Step 1: Initialize the ESP & Gain Access to Peripherals
+#### Initialize the ESP & Gain Access to Peripherals
 
 Before utilizing any device peripherals, the ESP device must be configured, primarily by setting up the device clocks and gaining access to peripheral instances. The singleton pattern is employed to ensure that only one instance of each peripheral is accessed throughout the application, enhancing safety and resource management.
 
@@ -689,7 +689,7 @@ pub struct Config {
 
 This configuration struct enables developers to tailor the system's behavior by adjusting clock speeds and watchdog parameters as needed.
 
-#### Step 2: Create an IO Driver
+#### Create an IO Driver
 
 With access to peripherals established, the next step is to create an IO driver, which provides control over individual IO pins. The `esp_hal::gpio` module offers the `Io` struct for this purpose.
 
@@ -699,7 +699,7 @@ let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
 
 This code initializes the IO driver by passing the GPIO and IO_MUX peripherals obtained during initialization. The IO driver facilitates further configuration and management of specific GPIO pins.
 
-#### Step 3: Configure Analog Pin and Channel
+#### Configure Analog Pin and Channel
 
 Not all pins on a microcontroller support analog functions. Depending on the chosen pin, the corresponding ADC instance must be configured. For example, using GPIO4 requires configuring ADC1. Multiple pins can be sampled by the same ADC instance through an internal multiplexer.
 
@@ -726,7 +726,7 @@ let mut adc_pin = adc_config.enable_pin(
 
 In this example, the ADC channel is configured with an attenuation of 11 dB for a specific pin. Attenuation allows the ADC to handle higher input voltages by scaling them down, ensuring accurate measurements within the ADC's reference voltage range.
 
-#### Step 4: Create an ADC Driver
+#### Create an ADC Driver
 
 With the ADC channel configured, an ADC driver can be created to manage the ADC instance and perform measurements. The `esp_hal::analog::adc::Adc` type provides the necessary abstraction for this purpose.
 
@@ -788,10 +788,10 @@ Timers and counters are versatile peripherals essential for managing time-based 
 
 Configuring timers on the ESP32-C3 involves several methodical steps to ensure accurate and efficient timing operations. This process is similar to configuring other peripherals like GPIOs and includes initializing peripherals, setting up timer instances, and configuring specific timer settings.
 
-#### Step 1: Take the Peripherals
+#### Take the Peripherals
 The initial step mirrors the peripheral initialization process used for GPIOs, as demonstrated before. This involves acquiring and setting up the necessary peripherals required for timer operation.
 
-#### Step 2: Configure a Timer Instance
+#### Configure a Timer Instance
 The ESP32-C3 chip features two hardware timer groups, each containing a general-purpose hardware timer and a system watchdog timer. These timers are 54-bit wide with 16-bit prescalers and offer functionalities such as auto-reload, alarm generation, up/down counting, and interrupt generation. To configure a timer, the `TimerDriver::new` method from the `esp_idf_hal::timer` module is used. This method requires a Timer peripheral instance (e.g., Timer00) and a reference to a configuration instance.
 
 ```rust
@@ -800,7 +800,7 @@ let some_timer = TimerDriver::new(peripherals.timer00, &Config::new()).unwrap();
 ```
 In this example, `Timer00` is instantiated using the default configuration, which sets the divider to 80, and both `xtal` and `auto_reload` to `false`. The ESP32-C3 provides two general-purpose timers, `timer00` and `timer01`, which can be chosen based on application requirements.
 
-#### Step 3: Configure Timer Control Methods
+#### Configure Timer Control Methods
 After instantiating the timer, various control methods are available to manage its behavior. These methods allow enabling/disabling the timer, setting the counter value, configuring alarms, and more.
 
 ```rust
@@ -875,9 +875,9 @@ fn timer_alarm_int_callback() {
 // Main Function
 fn main() -> ! {
     // Any Startup Code
-    // Step 1: Take Peripherals
+    // Take Peripherals
     let peripherals = Peripherals::take().unwrap();
-    // Step 2: Configure Timer
+    // Configure Timer
     let mut some_timer = TimerDriver::new(peripherals.timer00, &Config::new()).unwrap();
     // Timer Settings
     // Set Start/Reset Count Value to Zero
@@ -907,7 +907,7 @@ Configuring timers on the ESP32-C3 involves initializing the necessary periphera
 
 Configuring timers on ESP devices using Rust involves a structured process that ensures precise time-based operations essential for various embedded applications. This configuration leverages the `esp-hal` crate, which provides abstractions for managing timer peripherals within the ESP-IDF framework. The setup process is divided into several key steps, each building upon the previous to establish a reliable timer mechanism.
 
-#### Step 1: Initialize the ESP & Gain Access to Peripherals
+#### Initialize the ESP & Gain Access to Peripherals
 
 The first step mirrors the initialization process outlined in previous sections. It involves configuring the ESP device and gaining access to its peripherals using the singleton pattern, which ensures that only one instance of each peripheral is accessed throughout the application. This is achieved with the `esp_hal::init` function, which initializes the device with default configurations.
 
@@ -917,7 +917,7 @@ let device_peripherals = esp_hal::init(esp_hal::Config::default());
 
 The `init` function accepts an `esp_hal::Config` struct and returns instances of the peripherals and system clocks, preparing the device for subsequent configurations.
 
-#### Step 2: Instantiate a Timer Group & Obtain Timer Handle
+#### Instantiate a Timer Group & Obtain Timer Handle
 
 Once peripherals are initialized, the next step is to create a timer group and obtain a handle for a specific timer within that group. Timer groups allow for the organization and management of multiple timers, facilitating coordinated timing operations.
 
@@ -932,7 +932,7 @@ let mut timer0 = timer_group0.timer0;
 
 By instantiating `timer_group0` and obtaining `timer0`, developers can manage and control Timer 0 within Timer Group 0, setting the foundation for precise timing operations.
 
-#### Step 3: Configure Analog Pin and Channel
+#### Configure Analog Pin and Channel
 
 Configuring the timer involves setting up the timer's parameters, such as the start value, compare value, and enabling features like auto-reload. This ensures that the timer operates according to the desired specifications, whether it’s for counting, generating interrupts, or triggering alarms.
 
@@ -962,7 +962,7 @@ timer0.start();
 
 In this example, `timer0` is reset to zero and then started, initiating the counting process. These methods allow for precise control over the timer’s behavior, enabling functionalities such as periodic interrupts or timed events.
 
-#### Step 4: Create an ADC Driver
+#### Create an ADC Driver
 
 After configuring the timer, an ADC driver can be created to manage analog-to-digital conversions. This step involves associating the timer with the ADC instance, facilitating synchronized analog measurements based on timer events.
 
@@ -1007,7 +1007,7 @@ fn main() -> ! {
     let timer0 = timer_group0.timer0;
 
     // Interrupt Configuration
-    // Step 1: Configure timer to trigger an interrupt every second
+    // Configure timer to trigger an interrupt every second
     // Load count equivalent to 1 second
     timer0
         .load_value(MicrosDurationU64::micros(1_000_000))
@@ -1016,12 +1016,12 @@ fn main() -> ! {
     timer0.set_alarm_active(true);
     // Activate counter
     timer0.set_counter_active(true);
-    // Step 2: Attach Interrupt and Start listening for timer events
+    // Attach Interrupt and Start listening for timer events
     timer0.set_interrupt_handler(tg0_t0_level);
 
     // Following Application Code
     timer0.listen();
-    // Step 3: Move the timer to the global context
+    // Move the timer to the global context
     critical_section::with(|cs| {
         G_TIMER.borrow_ref_mut(cs).replace(timer0)
     });
@@ -1090,10 +1090,10 @@ Pulse Width Modulation is a versatile and essential technique in embedded system
 
 Configuring PWM on the ESP32-C3 involves a series of methodical steps to set up the LED PWM Controller (LEDC) peripheral for generating precise PWM signals. This process ensures that PWM channels are correctly initialized and configured to control various applications such as LED brightness, motor speed, and more.
 
-#### Step 1: Take the Peripherals
+#### Take the Peripherals
 The initial step in configuring PWM mirrors the peripheral initialization process used in previous configurations, such as GPIO setup. This involves acquiring and setting up the necessary peripherals required for PWM operation, ensuring that all components are ready for subsequent configuration stages.
 
-#### Step 2: Configure an LEDC Timer Instance
+#### Configure an LEDC Timer Instance
 The LEDC peripheral is divided into two main parts: timers and PWM generators/channels. Timers drive the PWM channels and are independently configurable from the PWM generators. To configure an LEDC timer, the `LedcTimerDriver` struct's `new` method is used, which requires two arguments: an LEDC timer peripheral instance (e.g., `timer0`) and a `TimerConfig` configuration instance.
 
 ```rust
@@ -1121,7 +1121,7 @@ let timer_driver = LedcTimerDriver::new(
 ```
 In this example, `timer0` is configured with a 50Hz clock frequency and a 14-bit resolution. The ESP32-C3 LEDC peripheral includes four timers (`timer0` to `timer3`), each of which can be independently selected based on application requirements.
 
-#### Step 3: Configure an LEDC PWM Channel Instance
+#### Configure an LEDC PWM Channel Instance
 After configuring the timer, the next step is to set up the PWM channel. This is done using the `LedcDriver` struct's `new` method, which requires three parameters: a PWM channel instance (e.g., `channel0`), the previously configured timer driver instance, and a GPIO pin instance where the PWM signal will be output.
 
 ```rust
@@ -1167,7 +1167,7 @@ Configuring PWM on the ESP32-C3 involves initializing the necessary peripherals,
 
 # PWM (no-std)
 
-#### Step 1: Initialize the ESP & Gain Access to Peripherals
+#### Initialize the ESP & Gain Access to Peripherals
 
 The initial step involves configuring the ESP device and gaining access to its peripherals. This is achieved using the `esp_hal::init` function, which sets up the device clocks and initializes peripheral instances using the singleton pattern. This ensures that only one instance of each peripheral is accessed throughout the application, promoting safe and efficient hardware resource management.
 
@@ -1177,7 +1177,7 @@ let device_peripherals = esp_hal::init(esp_hal::Config::default());
 
 The `init` function takes an `esp_hal::Config` struct as an argument and returns instances of the peripherals and system clocks. Using the default configuration simplifies the setup process by applying standard settings.
 
-#### Step 2: Create an IO Driver
+#### Create an IO Driver
 
 With peripherals initialized, the next step is to create an IO driver, which provides control over individual IO pins. The `esp_hal::gpio` module offers the `Io` struct for this purpose.
 
@@ -1187,7 +1187,7 @@ let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
 
 This code initializes the IO driver by passing the GPIO and IO_MUX peripherals obtained during initialization. The IO driver facilitates further configuration and management of specific GPIO pins.
 
-#### Step 3: Configure the PWM Pin into Output
+#### Configure the PWM Pin into Output
 
 Before using a pin for PWM output, it must be configured as a push-pull output. This configuration allows the microcontroller to actively drive the pin high or low, enabling precise control over connected devices.
 
@@ -1197,7 +1197,7 @@ let some_output_pin = Output::new(io.pins.gpio3, Level::Low);
 
 In this example, GPIO3 is set as an output with an initial low level. The push-pull configuration ensures that the pin can actively drive both high and low states, which is essential for generating PWM signals.
 
-#### Step 4: Create an LEDC Peripheral Driver
+#### Create an LEDC Peripheral Driver
 
 The LED Controller (LEDC) peripheral manages PWM signal generation. Creating an LEDC driver involves instantiating the `Ledc` struct and setting the global clock source.
 
@@ -1217,7 +1217,7 @@ ledc.set_global_slow_clock(LSGlobalClkSource::APBClk);
 
 This code initializes the LEDC driver with the LEDC peripheral and sets the global slow clock source to `APBClk`, which is necessary for timing accuracy in PWM signal generation.
 
-#### Step 6: Configure the LEDC Timer
+#### Configure the LEDC Timer
 
 Timers are integral to PWM signal generation, determining the frequency and resolution of the PWM signal. Configuring a timer involves associating it with the LEDC instance and setting its parameters such as duty resolution and frequency.
 
@@ -1237,7 +1237,7 @@ ledctimer
 
 In this example, Timer0 is configured with a 12-bit duty resolution and a frequency of 4 kHz. The `configure` method sets these parameters, ensuring that the PWM signal operates at the desired specifications.
 
-#### Step 7: Configure a PWM Channel Instance
+#### Configure a PWM Channel Instance
 
 After configuring the timer, a PWM channel must be set up to generate the PWM signal on a specific pin. This involves associating the output pin with the PWM channel, linking it to the configured timer, and setting the duty cycle.
 
@@ -1336,10 +1336,10 @@ Serial communication is an essential method for data transmission in embedded sy
 
 ### Configuring UART
 
-#### Step 1: Take the Peripherals
+#### Take the Peripherals
 The initial step in configuring UART is identical to previous peripheral setups. This involves acquiring and initializing the necessary peripherals required for UART operation to ensure they are ready for configuration.
 
-#### Step 2: Configure a UART Instance
+#### Configure a UART Instance
 To configure UART on the ESP32-C3, the `UartDriver` abstraction from the `esp-idf-hal` library is utilized. The `new` method of `UartDriver` is responsible for creating a UART instance and requires six parameters:
 
 1. **uart**: An instance of a UART peripheral.
@@ -1437,10 +1437,10 @@ In this example, the `read` method attempts to receive a single byte and stores 
 
 ### Configuring I2C
 
-#### Step 1: Take the Peripherals
+#### Take the Peripherals
 Similar to UART configuration, the first step in setting up I2C involves taking and initializing the necessary peripherals as demonstrated before.
 
-#### Step 2: Create and Configure an I2C Instance
+#### Create and Configure an I2C Instance
 The `I2cDriver` abstraction from the `esp-idf-hal` library is used to create and configure an I2C instance. The `new` method requires four parameters:
 
 1. **i2c**: An instance of an I2C peripheral.
@@ -1526,7 +1526,7 @@ Configuring UART and I2C on the ESP32-C3 involves initializing the necessary per
 
 # Serial Communication (no-std)
 
-#### Step 1: Initialize the ESP & Gain Access to Peripherals
+#### Initialize the ESP & Gain Access to Peripherals
 
 Before utilizing any device peripherals, it's crucial to configure the ESP device itself. This involves setting up the device clocks and gaining access to peripheral instances using the singleton pattern. The `esp-hal` crate provides a streamlined method for initializing the device with default configurations.
 
@@ -1545,7 +1545,7 @@ pub struct Config {
 
 The `Config` struct allows customization of system parameters such as CPU clock speed and watchdog settings. However, for basic applications, the default values are typically sufficient, as demonstrated in the initialization step.
 
-#### Step 2: Create an IO Driver
+#### Create an IO Driver
 
 With peripherals initialized, the next step is to create an IO driver. The IO driver provides control over individual IO pins, enabling their configuration for various functions, including UART communication.
 
@@ -1555,7 +1555,7 @@ let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
 
 This code initializes the IO driver by passing the GPIO and IO_MUX peripherals obtained during initialization. The IO driver facilitates further configuration and management of specific GPIO pins required for UART operations.
 
-#### Step 3: Instantiate UART Pins
+#### Instantiate UART Pins
 
 Before creating a UART instance, the pins designated for UART communication must be instantiated. Typically, the transmit (TX) pin is configured as an output, and the receive (RX) pin is configured as an input. This configuration ensures proper data transmission and reception.
 
@@ -1571,7 +1571,7 @@ In this example:
 - **GPIO21** is configured as an output pin for transmitting data.
 - **GPIO20** is configured as an input pin with a pull-up resistor for receiving data.
 
-#### Step 4: Configure a UART Instance
+#### Configure a UART Instance
 
 Configuring UART involves creating a UART instance with specific settings such as baud rate, data bits, parity, stop bits, and clock source. The `esp_hal::uart::Uart` abstraction provides methods to instantiate and configure UART peripherals effectively.
 
@@ -1629,7 +1629,7 @@ In this example:
 
 **Note**: `UART0` is typically used for logging and firmware communication on ESP32-C3 development boards. For UART operations intended for other purposes, it's advisable to consult the device's reference manual to ensure correct peripheral usage and pin assignments.
 
-#### Step 5: Interacting with UART
+#### Interacting with UART
 
 Once the UART instance is configured, it can be used to send and receive data. The `Uart` type offers several methods to facilitate standard write and read operations.
 
@@ -1670,7 +1670,7 @@ In this example:
 
 Configuring the Inter-Integrated Circuit (I2C) interface on ESP devices using Rust involves a systematic process that ensures reliable serial communication with various I2C peripherals. I2C is widely used for connecting low-speed peripherals like sensors, displays, and EEPROMs to microcontrollers. This guide outlines the necessary steps to initialize the ESP device, set up the IO driver, configure I2C pins, instantiate and configure an I2C instance, and interact with the I2C peripheral for data transmission and reception.
 
-#### Step 1: Initialize the ESP & Gain Access to Peripherals
+#### Initialize the ESP & Gain Access to Peripherals
 
 The initial step involves configuring the ESP device and gaining access to its peripherals. This is achieved using the `esp_hal::init` function, which sets up the device clocks and initializes peripheral instances using the singleton pattern. This ensures that only one instance of each peripheral is accessed throughout the application, promoting safe and efficient hardware resource management.
 
@@ -1680,7 +1680,7 @@ let device_peripherals = esp_hal::init(esp_hal::Config::default());
 
 The `init` function takes an `esp_hal::Config` struct as an argument and returns instances of the peripherals and system clocks. Using the default configuration simplifies the setup process by applying standard settings, ensuring that the device is ready for peripheral configuration.
 
-#### Step 2: Create an IO Driver
+#### Create an IO Driver
 
 With peripherals initialized, the next step is to create an IO driver. The IO driver provides control over individual IO pins, enabling their configuration for various functions, including I2C communication.
 
@@ -1690,7 +1690,7 @@ let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
 
 This code initializes the IO driver by passing the GPIO and IO_MUX peripherals obtained during initialization. The IO driver facilitates further configuration and management of specific GPIO pins required for I2C operations.
 
-#### Step 3: Create and Configure an I2C Instance
+#### Create and Configure an I2C Instance
 
 Configuring I2C involves creating an I2C instance with specific settings such as the operating frequency and associating it with designated SDA (Serial Data) and SCL (Serial Clock) pins. The `esp_hal::i2c::I2c` abstraction provides methods to instantiate and configure I2C peripherals effectively.
 
@@ -1717,7 +1717,7 @@ In this example:
 2. **SDA and SCL Pins**: `io.pins.gpio1` and `io.pins.gpio2` are instantiated as bidirectional pins for SDA and SCL respectively.
 3. **Frequency**: The I2C operation frequency is set to 100 kHz, which is a standard speed for I2C communication.
 
-#### Step 3: Instantiate UART Pins
+#### Instantiate UART Pins
 
 Before creating a UART instance, the pins designated for UART communication must be instantiated. Typically, the transmit (TX) pin is configured as an output, and the receive (RX) pin is configured as an input. This configuration ensures proper data transmission and reception.
 
@@ -1733,7 +1733,7 @@ In this example:
 - **GPIO21** is configured as an output pin for transmitting data.
 - **GPIO20** is configured as an input pin with a pull-up resistor for receiving data.
 
-#### Step 4: Configure an I2C Instance
+#### Configure an I2C Instance
 
 Configuring I2C involves creating an I2C instance with specific settings such as the operating frequency and associating it with designated SDA (Serial Data) and SCL (Serial Clock) pins.
 
@@ -1760,7 +1760,7 @@ In this example:
 2. **SDA and SCL Pins**: `io.pins.gpio1` and `io.pins.gpio2` are instantiated as bidirectional pins for SDA and SCL respectively.
 3. **Frequency**: The I2C operation frequency is set to 100 kHz, which is a standard speed for I2C communication.
 
-#### Step 5: Interacting with I2C
+#### Interacting with I2C
 
 Once the I2C instance is configured, it can be used to send and receive data to and from I2C devices. The `I2c` type implements the `embedded_io::Write` and `embedded_io::Read` traits, facilitating standard write and read operations.
 
@@ -1811,15 +1811,15 @@ This section outlines the process of configuring WiFi for ESP devices using Rust
 
 The AnyHow crate is introduced as a solution to improve error handling in Rust applications for ESP devices. Traditionally, the `unwrap` method was used to extract values from `Result` types, which can lead to panics if an error occurs. The AnyHow crate integrates ESP-IDF error codes, providing more informative error messages and better context for debugging. To use AnyHow, developers need to declare it as a dependency, import it, change the main function's return type to `anyhow::Result`, and replace `unwrap` calls with the `?` operator. This approach enhances the robustness and maintainability of the code, especially in wireless implementations.
 
-### Step 1: Take the Peripherals
+### Take the Peripherals
 
 The first step in configuring WiFi involves taking control of the device's peripherals. This is done using the `Peripherals::take().unwrap()` method, which initializes the necessary hardware components required for WiFi functionality. This step is consistent with earlier sections of the documentation, ensuring that the peripherals are properly initialized before proceeding to create and configure the WiFi driver instance.
 
-### Step 2: Create a WiFi Driver Instance
+### Create a WiFi Driver Instance
 
 Creating a WiFi driver instance involves using the `esp-idf-svc` crate, which offers multiple structures such as `EspWifi` and `WifiDriver`. The `EspWifi` struct provides a higher-level abstraction, simplifying the creation of networking examples by encapsulating a `WifiDriver`. To instantiate `EspWifi`, developers use the `new` method, which requires a WiFi peripheral instance, a system event loop, and an optional non-volatile storage (NVS) partition. This setup follows a singleton pattern, ensuring that only one instance of each component is created.
 
-### Step 3: Configure the WiFi Driver Instance
+### Configure the WiFi Driver Instance
 
 Once the WiFi driver instance is created, it needs to be configured to operate either in station mode or access point mode. Station mode allows the device to connect to an existing WiFi network as a client, while access point mode enables the device to act as a hotspot for other clients to connect. The `set_configuration` method of `EspWifi` is used to apply the desired configuration by passing a `Configuration` enum. For example, configuring the device as a client involves specifying the SSID, password, and authentication method. This step is crucial for establishing the desired network behavior of the ESP device.
 
@@ -1843,7 +1843,7 @@ HTTP (Hypertext Transfer Protocol) is the cornerstone of internet communication,
 
 Configuring an HTTP client for ESP devices using Rust involves a systematic approach that ensures secure and efficient communication over the internet. This process leverages the `esp-idf-svc` crate, which provides essential abstractions for handling HTTP client functionalities within the ESP-IDF framework. The configuration process is divided into several key steps, each building upon the previous to establish a robust HTTP client setup.
 
-#### Step 1: Take the Peripherals
+#### Take the Peripherals
 
 The initial step in configuring an HTTP client mirrors the process used in setting up WiFi. It involves taking control of the device's peripherals using the `Peripherals::take().unwrap()` method. This ensures that all necessary hardware components are properly initialized and ready for subsequent configuration steps. By securing access to the peripherals, the device can effectively manage networking tasks required for HTTP communication.
 
@@ -1851,7 +1851,7 @@ The initial step in configuring an HTTP client mirrors the process used in setti
 let peripherals = Peripherals::take().unwrap();
 ```
 
-#### Step 2: Connect to WiFi
+#### Connect to WiFi
 
 Before establishing an HTTP connection, the device must be connected to a WiFi network. This step is identical to the WiFi configuration process outlined earlier, where the device is set up either as a station or an access point. Successfully connecting to WiFi provides the necessary network access for the HTTP client to send and receive data over the internet.
 
@@ -1870,7 +1870,7 @@ wifi.connect()?;
 wifi.wait_netif_up()?;
 ```
 
-#### Step 3: Configure an HTTP Connection
+#### Configure an HTTP Connection
 
 Configuring an HTTP connection involves creating an instance of `EspHttpConnection` from the `esp_idf_svc::http::client` module. This abstraction requires a reference to a `http::client::Configuration` struct during instantiation. The configuration typically sets essential parameters such as `use_global_ca_store` and `crt_bundle_attach` to enable secure HTTPS connections. These settings ensure that the HTTP client uses a global certificate authority store and attaches the necessary certificate bundle for encryption, which is crucial for secure data transmission.
 
@@ -1929,7 +1929,7 @@ An HTTP server is a fundamental component in web architecture, responsible for h
 
 Configuring an HTTP server on ESP devices using Rust involves several key steps to ensure that the server can handle client requests effectively. This process leverages the `esp-idf-svc` crate, which provides abstractions for managing HTTP server functionalities within the ESP-IDF framework. The configuration process is methodical, starting from initializing peripherals to defining response behaviors for different HTTP methods and endpoints.
 
-#### Step 1: Take the Peripherals
+#### Take the Peripherals
 
 The first step in setting up an HTTP server is to take control of the device's peripherals. This is achieved using the `Peripherals::take().unwrap()` method, which initializes the necessary hardware components required for networking and server operations. Ensuring that peripherals are properly initialized is crucial for the subsequent configuration steps and for the reliable functioning of the HTTP server.
 
@@ -1937,7 +1937,7 @@ The first step in setting up an HTTP server is to take control of the device's p
 let peripherals = Peripherals::take().unwrap();
 ```
 
-#### Step 2: Connect to WiFi
+#### Connect to WiFi
 
 Before the HTTP server can handle incoming requests, the device must be connected to a WiFi network. This step is identical to the WiFi configuration process previously outlined, where the device is set up either as a station or an access point. Successfully connecting to WiFi provides the server with the necessary network access to listen for and respond to client requests.
 
@@ -1956,7 +1956,7 @@ wifi.connect()?;
 wifi.wait_netif_up()?;
 ```
 
-#### Step 3: Create and Configure an HTTP Server Instance
+#### Create and Configure an HTTP Server Instance
 
 Creating and configuring an HTTP server involves instantiating the `EspHttpServer` abstraction from the `esp_idf_svc::http::server` module. This is done using the `new` method, which takes a reference to a `http::server::Configuration` struct. The default configuration is typically sufficient for basic server operations, but it can be customized as needed based on specific networking or protocol requirements.
 
@@ -2030,7 +2030,7 @@ Coordinated Universal Time (UTC) serves as the global time standard for SNTP. By
 
 Configuring SNTP on ESP devices using Rust involves creating and setting up an SNTP client instance. This process leverages the `esp-idf-svc` crate, which provides the `EspSntp` abstraction for managing SNTP functionalities within the ESP-IDF framework.
 
-#### Step 1: Take the Peripherals
+#### Take the Peripherals
 
 The initial step involves taking control of the device's peripherals to ensure that all necessary hardware components are initialized and ready for network operations.
 
@@ -2038,7 +2038,7 @@ The initial step involves taking control of the device's peripherals to ensure t
 let peripherals = Peripherals::take().unwrap();
 ```
 
-#### Step 2: Connect to WiFi
+#### Connect to WiFi
 
 Before the device can synchronize its time, it must be connected to a WiFi network. This step is identical to the WiFi configuration process outlined earlier.
 
@@ -2057,7 +2057,7 @@ wifi.connect()?;
 wifi.wait_netif_up()?;
 ```
 
-#### Step 3: Create and Configure an SNTP Instance
+#### Create and Configure an SNTP Instance
 
 Instantiating and configuring SNTP is straightforward, especially with the default configuration. The `EspSntp::new_default()` method initializes an SNTP client with default settings. Custom configurations are also possible, allowing the selection of different SNTP servers, operating modes, or synchronization modes as needed.
 
