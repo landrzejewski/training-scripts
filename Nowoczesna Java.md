@@ -1083,8 +1083,6 @@ Higher-order functions allow you to abstract recurring patterns, promoting code 
 
 By combining immutability, lambda expressions, streams, Optional, and higher-order functions, you can write code that is not only cleaner but also more efficient and easier to maintain.
 
-**Example: Processing a Data Pipeline with Multiple Stages**
-
 ```java
 import java.util.List;
 import java.util.Optional;
@@ -2161,36 +2159,6 @@ com.example.utils
 
 Modern build tools like Maven and Gradle have integrated support for Java modules, allowing seamless compilation and packaging of modular applications.
 
-**Maven Example: Defining Modules**
-
-```xml
-<project>
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>com.example</groupId>
-    <artifactId>app</artifactId>
-    <version>1.0.0</version>
-    <dependencies>
-        <dependency>
-            <groupId>com.example</groupId>
-            <artifactId>service</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-    </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <release>11</release>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-</project>
-```
-
 ### 6.2. IDE Support
 
 Integrated Development Environments (IDEs) like IntelliJ IDEA, Eclipse, and VS Code offer robust support for modules, including syntax highlighting, module dependency visualization, and automated refactoring tools.
@@ -2299,12 +2267,6 @@ Modules must ensure that each package is uniquely associated with a single modul
 ### 9.1. Design Modules Around Functionality
 
 Organize modules based on cohesive functionality rather than technical layers. This promotes better encapsulation and easier maintenance.
-
-**Example: Functional Module Design**
-
-- `com.example.app`: Main application module.
-- `com.example.service`: Business logic and services.
-- `com.example.utils`: Utility classes and helpers.
 
 ### 9.2. Minimize Module Dependencies
 
@@ -2447,185 +2409,6 @@ Project Jigsaw introduces a comprehensive module system that fundamentally enhan
        ```
 
     3. The output will list the packages and modules that `com.example.app` depends on, helping you verify that only the intended modules are referenced and that internal packages remain encapsulated.
-
----
-
-# Module Declarations in Java
-
-Module declarations form the cornerstone of Java's module system. The `module-info.java` file, placed at the root of a module, defines its boundaries and dependencies. In this article, we explore the syntax and structure of `module-info.java` and discuss the primary directives: `requires`, `exports`, `opens`, and `uses`/`provides`.
-
----
-
-## 1. Syntax and Structure of `module-info.java`
-
-The `module-info.java` file is a simple Java source file that declares a module. Its basic structure comprises the module declaration, along with a series of directives that describe the module's dependencies and exposed packages.
-
-**Basic Structure Example:**
-
-```java
-module com.example.module {
-    // Directive statements go here
-}
-```
-
-- The file starts with the keyword `module` followed by the module name.
-- All directives (such as `requires`, `exports`, etc.) must be placed inside the curly braces.
-
----
-
-## 2. The `requires` Directive
-
-The `requires` directive declares dependencies on other modules. When a module requires another, it gains access to the other module's exported packages.
-
-**Example:**
-
-```java
-module com.example.app {
-    requires com.example.utils;
-}
-```
-
-- `requires com.example.utils;` specifies that `com.example.app` depends on the module named `com.example.utils`.
-- This dependency is checked at compile-time and enforced at runtime.
-
-### Transitive Dependencies
-
-The `requires transitive` directive allows a module to re-export a dependency. This means that any module requiring this module will also implicitly require the transitive dependency.
-
-**Example:**
-
-```java
-module com.example.api {
-    requires transitive com.example.utils;
-    exports com.example.api;
-}
-```
-
-- Modules that require `com.example.api` automatically have access to the packages exported by `com.example.utils`.
-
----
-
-## 3. The `exports` Directive
-
-The `exports` directive is used to control which packages within a module are accessible to other modules. Only the packages explicitly exported can be accessed; unexported packages remain internal.
-
-**Example:**
-
-```java
-module com.example.service {
-    exports com.example.service.api;
-}
-```
-
-- Here, `com.example.service.api` is public.
-- Any package not mentioned in an `exports` statement (such as `com.example.service.impl`) is encapsulated within the module.
-
----
-
-## 4. The `opens` Directive
-
-The `opens` directive serves a similar purpose to `exports` but is specifically used to grant runtime reflection access. This is especially useful for frameworks that rely on reflection (e.g., serialization frameworks, dependency injection).
-
-### Options for `opens`
-
-- **Package-Level:** Open an entire package for deep reflection.
-
-  **Example:**
-
-  ```java
-  module com.example.reflective {
-      opens com.example.reflective.internal;
-  }
-  ```
-
-- **Qualified Opens:** Open a package to a specific module.
-
-  **Example:**
-
-  ```java
-  module com.example.reflective {
-      opens com.example.reflective.internal to com.example.framework;
-  }
-  ```
-
-    - This grants reflective access for `com.example.framework` only, maintaining tighter control over which modules can reflectively access internal packages.
-
----
-
-## 5. The `uses` and `provides` Directives
-
-These directives support a service-oriented architecture within the module system.
-
-### 5.1. The `uses` Directive
-
-The `uses` directive declares that a module depends on a service interface. This instructs the module system to locate implementations of the specified service at runtime.
-
-**Example:**
-
-```java
-module com.example.checkout {
-    requires com.example.payment;
-    uses com.example.payment.api.PaymentProcessor;
-}
-```
-
-- This informs the JVM that `com.example.checkout` will be looking for a service that implements the `PaymentProcessor` interface.
-
-### 5.2. The `provides` Directive
-
-The `provides` directive is used by a module to supply an implementation of a service interface.
-
-**Example:**
-
-```java
-module com.example.payment {
-    exports com.example.payment.api;
-    provides com.example.payment.api.PaymentProcessor
-        with com.example.payment.impl.StripeProcessor;
-}
-```
-
-- The `provides` clause indicates that the module `com.example.payment` implements the service `PaymentProcessor` using `StripeProcessor`.
-- This mechanism supports dynamic service loading using `ServiceLoader`.
-
----
-
-## 6. Example: A Complete `module-info.java`
-
-Combining the directives, here’s an example of a complete module descriptor for a hypothetical payment module:
-
-```java
-module com.example.payment {
-    // Export the public API package for external use.
-    exports com.example.payment.api;
-
-    // Internal packages remain encapsulated.
-    // Optionally, open internal packages to trusted modules for reflection.
-    opens com.example.payment.internal to com.example.framework;
-
-    // Declare that this module uses the PaymentGateway service.
-    uses com.example.payment.api.PaymentGateway;
-
-    // Provide an implementation for the PaymentProcessor service.
-    provides com.example.payment.api.PaymentProcessor
-        with com.example.payment.impl.StripeProcessor;
-}
-```
-
-- **exports com.example.payment.api;**  
-  Makes the API available to other modules.
-- **opens com.example.payment.internal to com.example.framework;**  
-  Grants reflective access to the internal package for a specified framework.
-- **uses com.example.payment.api.PaymentGateway;**  
-  Indicates that the module intends to load services for the `PaymentGateway` interface.
-- **provides com.example.payment.api.PaymentProcessor with com.example.payment.impl.StripeProcessor;**  
-  Registers an implementation for the `PaymentProcessor` service.
-
----
-
-## Conclusion
-
-The module declaration in Java, expressed through the `module-info.java` file, allows developers to define clear module boundaries and dependencies. By effectively using `requires`, `exports`, `opens`, and `uses`/`provides`, developers can achieve strong encapsulation, streamlined dependency management, and support for service-oriented architectures. These constructs are essential for building robust, scalable, and maintainable modular applications in Java.
 
 ---
 
@@ -4350,54 +4133,6 @@ public class MutableToImmutableExample {
         // Convert to immutable list to expose safely.
         List<String> immutableList = List.copyOf(mutableList);
         System.out.println("Immutable List: " + immutableList);
-    }
-}
-```
-
----
-
-## 5. Integration and Real-World Examples
-
-### 5.1. Building APIs with Immutable Collections
-
-When designing API endpoints (e.g., RESTful services), returning immutable collections ensures that clients receive a consistent snapshot of data without accidental modification.
-
-**Example:**
-
-```java
-import java.util.List;
-
-public class ApiResponse {
-    private final List<String> data;
-
-    public ApiResponse(List<String> data) {
-        // Defensive copy to enforce immutability.
-        this.data = List.copyOf(data);
-    }
-
-    public List<String> getData() {
-        return data;
-    }
-}
-```
-
-### 5.2. Ordered Collections in Data Processing
-
-For applications like logging systems, the order of events is crucial. Using an ordered collection like `LinkedHashMap` to store log entries preserves the sequence in which events occurred.
-
-```java
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-public class LogProcessor {
-    public static void main(String[] args) {
-        Map<Integer, String> logs = new LinkedHashMap<>();
-        logs.put(1, "Start process");
-        logs.put(2, "Process data");
-        logs.put(3, "End process");
-
-        // The iteration order reflects the insertion order.
-        logs.forEach((key, value) -> System.out.println(key + ": " + value));
     }
 }
 ```
