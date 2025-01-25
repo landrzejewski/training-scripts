@@ -29,28 +29,29 @@ for mdfile in "$SRC_DIR"/*.md; do
 
   echo "Processing '$mdfile'..."
 
-  pandoc \
-    -f markdown \
-    -t html5 \
-    -o "${TARGET_DIR}/${FILE_BASENAME}.html" \
-    "$mdfile" \
-    -c "../styles.css" \
-    --standalone \
-    --highlight-style=highlight.theme \
-    --toc \
-    --toc-depth=2 \
-    --number-sections
+#  pandoc \
+#    -f markdown \
+#    -t html5 \
+#    -o "${TARGET_DIR}/${FILE_BASENAME}.html" \
+#    "$mdfile" \
+#    -c "../styles.css" \
+#    --standalone \
+#    --highlight-style=highlight.theme \
+#    --toc \
+#    --toc-depth=2 \
+#    --number-sections
+#
+#  if [[ $? -ne 0 ]]; then
+#    echo "Error converting '$mdfile' to HTML."
+#    continue
+#  fi
 
-  if [[ $? -ne 0 ]]; then
-    echo "Error converting '$mdfile' to HTML."
-    continue
-  fi
-
-  pandoc -N "$mdfile" \
+  pandoc "$mdfile" \
          -o "${TARGET_DIR}/${FILE_BASENAME}.pdf" \
          --toc \
          --toc-depth=1 \
          --number-sections \
+         --top-level-division=chapter \
          --highlight-style=highlight.theme \
          --pdf-engine=lualatex \
          --template=template.tex

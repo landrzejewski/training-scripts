@@ -1,4 +1,7 @@
-\documentclass[10pt]{book}
+\documentclass[12pt,openany,oneside]{book}
+
+% Prevent \cleardoublepage from inserting blank pages
+\let\cleardoublepage\clearpage
 
 % LuaLaTeX: Use fontspec for full Unicode
 \usepackage{fontspec}
@@ -17,6 +20,7 @@
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
+
 % Make chapter pages match:
 \fancypagestyle{plain}{
   \fancyhf{}
@@ -24,6 +28,15 @@
   \renewcommand{\headrulewidth}{0pt}
   \renewcommand{\footrulewidth}{0pt}
 }
+
+% Enforce standard chapter numbering
+\renewcommand{\thechapter}{\arabic{chapter}}
+
+% Set section numbering depth to 1 (chapters and sections only)
+\setcounter{secnumdepth}{1}
+
+% Set TOC depth to 1 (include only chapters and sections in TOC)
+\setcounter{tocdepth}{1}
 
 % Hyperref with hidden link boxes
 \usepackage[hidelinks]{hyperref}
@@ -59,9 +72,9 @@ $endif$
 
 \begin{document}
 
-\maketitle
+\frontmatter % Moved frontmatter before maketitle
 
-\frontmatter
+\maketitle
 
 $if(toc)${
   \tableofcontents

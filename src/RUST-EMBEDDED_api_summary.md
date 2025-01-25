@@ -1,7 +1,6 @@
 ---
 title: "API summary"
 author: ""
-date: ""
 ---
 
 # GPIO (std)

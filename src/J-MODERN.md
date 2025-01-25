@@ -1,7 +1,6 @@
 ---
 title: "Modern Java"
 author: "Łukasz Andrzejewski"
-date: "January 25, 2025"
 ---
 
 # Key Milestones in Java and Why Java Continues to Evolve

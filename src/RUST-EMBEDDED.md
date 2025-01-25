@@ -1,7 +1,6 @@
 ---
 title: "Rust programming for embedded systems"
 author: "Łukasz Andrzejewski"
-date: "January 27, 2025"
 ---
 
 # Introduction to embedded systems
@@ -23,6 +22,8 @@ Resource constraints are a defining characteristic of embedded systems. Memory (
 
 ### Application domains
 Embedded systems permeate nearly every modern industry. In automotive applications, engine control units (ECUs) modulate fuel injection and ignition timing, while advanced driver-assistance systems (ADAS) perform sensor fusion from cameras, radar, and LiDAR. Consumer electronics integrate various embedded subsystems for battery management, sensor hubs, and user interface control. Industrial automation depends on programmable logic controllers (PLCs) and robotics platforms that demand real-time control loops, robust communication interfaces (like Modbus or industrial Ethernet), and high reliability. Medical devices such as pacemakers and insulin pumps rely on ultra-low-power operation and fault-tolerant design, conforming to strict regulatory guidelines. Even aerospace and defense systems employ embedded technologies under extreme operational conditions, where failure is not an option.
+
+
 
 ### Emerging trends and future directions
 As processing capabilities converge with shrinking silicon geometries, MCUs and SoCs are increasingly incorporating machine learning accelerators and hardware cryptographic engines. This trend facilitates on-device inference for edge AI use cases, where real-time decisions must be made without reliance on cloud services. Connectivity and security are also top priorities, leading to widespread adoption of secure bootloaders, hardware security modules, and over-the-air update mechanisms that protect devices against malicious tampering. Real-time operating systems continue to evolve with more advanced scheduling policies, integrated networking stacks, and modular frameworks, further streamlining embedded software development. The Internet of Things (IoT) illustrates how embedded devices can form extensive networks, processing vast amounts of sensor data at the edge while leveraging the cloud for analysis, reporting, and long-term storage.
@@ -176,8 +177,6 @@ In embedded systems, peripherals are essential components that serve as the inte
 ## General Purpose Input/Output (GPIO)
 
 GPIO pins are versatile interfaces that can be configured as either digital inputs or outputs, providing significant flexibility in embedded applications. As inputs, GPIO pins can detect states such as switch or button presses, enabling user interaction and sensor data acquisition. As outputs, they can control devices like LEDs, motors, or other actuators by toggling between high (1) and low (0) states. The programmability of GPIO allows them to emulate the functions of other peripherals, making them indispensable for a wide range of tasks within embedded systems.
-
-<div style="page-break-after: always;" ></div>
 
 ## Timers and Counters
 
