@@ -23,8 +23,6 @@ Resource constraints are a defining characteristic of embedded systems. Memory (
 ### Application domains
 Embedded systems permeate nearly every modern industry. In automotive applications, engine control units (ECUs) modulate fuel injection and ignition timing, while advanced driver-assistance systems (ADAS) perform sensor fusion from cameras, radar, and LiDAR. Consumer electronics integrate various embedded subsystems for battery management, sensor hubs, and user interface control. Industrial automation depends on programmable logic controllers (PLCs) and robotics platforms that demand real-time control loops, robust communication interfaces (like Modbus or industrial Ethernet), and high reliability. Medical devices such as pacemakers and insulin pumps rely on ultra-low-power operation and fault-tolerant design, conforming to strict regulatory guidelines. Even aerospace and defense systems employ embedded technologies under extreme operational conditions, where failure is not an option.
 
-
-
 ### Emerging trends and future directions
 As processing capabilities converge with shrinking silicon geometries, MCUs and SoCs are increasingly incorporating machine learning accelerators and hardware cryptographic engines. This trend facilitates on-device inference for edge AI use cases, where real-time decisions must be made without reliance on cloud services. Connectivity and security are also top priorities, leading to widespread adoption of secure bootloaders, hardware security modules, and over-the-air update mechanisms that protect devices against malicious tampering. Real-time operating systems continue to evolve with more advanced scheduling policies, integrated networking stacks, and modular frameworks, further streamlining embedded software development. The Internet of Things (IoT) illustrates how embedded devices can form extensive networks, processing vast amounts of sensor data at the edge while leveraging the cloud for analysis, reporting, and long-term storage.
 
@@ -85,11 +83,11 @@ Building on the success of the ESP8266, the ESP32 emerged as a more powerful and
 
 Espressif Systems offers a comprehensive suite of System-on-Chip (SoC) offerings tailored to diverse IoT applications, categorized into several families:
 
-1. ESP32 Series: Introduced in 2016 as a successor to the ESP8266, the ESP32 is based on the Xtensa dual-core 32-bit LX6 processor. It supports both Wi-Fi and Bluetooth 4.2, along with various I/O options, making it suitable for a wide range of applications.
-2. ESP32-Sx Series: Launched in 2020, the S-series features the more recent Xtensa LX7 processor. These SoCs are available in single and dual-core configurations and support Bluetooth 5.0, offering enhanced performance and connectivity.
-3. ESP32-Cx Series: Also emerging in 2020, the C-series incorporates the open-source RISC-V processor. These microcontrollers come in single-core and dual-core variants, supporting Bluetooth 5.0 and Wi-Fi 6, catering to applications requiring advanced connectivity and processing power.
-4. ESP32-Hx Series: Announced in 2021, the H-series builds on the C-series by adding more connectivity options, including Thread and Zigbee protocols, enhancing their suitability for complex IoT networks.
-5. ESP32-Px Series: The most recent addition, announced in 2024, the P-series is RISC-V-based and targets AI applications. It offers multi-core functionality with a dual-core RISC-V processor for high-performance workloads and a single-core RISC-V for low-power operations. Notably, the P-series does not incorporate connectivity features, focusing instead on secure and high-efficiency use cases.
+- ESP32 Series: Introduced in 2016 as a successor to the ESP8266, the ESP32 is based on the Xtensa dual-core 32-bit LX6 processor. It supports both Wi-Fi and Bluetooth 4.2, along with various I/O options, making it suitable for a wide range of applications.
+- ESP32-Sx Series: Launched in 2020, the S-series features the more recent Xtensa LX7 processor. These SoCs are available in single and dual-core configurations and support Bluetooth 5.0, offering enhanced performance and connectivity.
+- ESP32-Cx Series: Also emerging in 2020, the C-series incorporates the open-source RISC-V processor. These microcontrollers come in single-core and dual-core variants, supporting Bluetooth 5.0 and Wi-Fi 6, catering to applications requiring advanced connectivity and processing power.
+- ESP32-Hx Series: Announced in 2021, the H-series builds on the C-series by adding more connectivity options, including Thread and Zigbee protocols, enhancing their suitability for complex IoT networks.
+- ESP32-Px Series: The most recent addition, announced in 2024, the P-series is RISC-V-based and targets AI applications. It offers multi-core functionality with a dual-core RISC-V processor for high-performance workloads and a single-core RISC-V for low-power operations. Notably, the P-series does not incorporate connectivity features, focusing instead on secure and high-efficiency use cases.
 
 These SoC offerings cater to the evolving needs of IoT development, providing a spectrum of features from ultra-low-power performance to advanced security measures. Espressif also provides various development kits and boards, such as the ESP32-C3-DevKitM-1 and ESP32-C3-AWS-ExpressLink-DevKit, which integrate their SoCs and come with different onboard components and pin configurations to suit various application requirements.
 
@@ -105,23 +103,15 @@ Rust emerges as a compelling choice for embedded systems. Developed initially as
 
 Key Features of Rust:
 
-1. Memory Safety
-   Rust's unique ownership system ensures memory safety without relying on a garbage collector. This system prevents common issues like null pointer dereferences, buffer overflows, and data races by enforcing strict rules on memory access and sharing.
-2. Fearless Concurrency
-   Rust facilitates safe and efficient concurrent programming through its ownership and borrowing mechanisms. The compiler enforces rules that allow multiple threads to access data concurrently while minimizing the risk of data races.
-3. Zero-Cost Abstractions
-   Rust offers high-level abstractions that do not incur runtime overhead. These abstractions are largely eliminated during compilation, resulting in performance that rivals low-level languages like C and C++.
-4. Static Typing
-   Being statically typed, Rust ensures that variable types are known at compile time. This feature helps catch many errors early in the development process, leading to more robust and reliable software.
-5. Pattern Matching
-   Rust includes powerful pattern-matching capabilities that allow developers to express complex conditional logic in a concise and readable manner, enhancing code clarity and maintainability.
-6. Cross-Platform Support
-   Rust is designed for portability across various platforms, enabling developers to write code that can run on different operating systems and hardware architectures with minimal modifications.
-7. Community and Ecosystem
-   Rust boasts a vibrant and growing community, supported by its package manager, Cargo. Cargo simplifies dependency management and project setup, while the Rust ecosystem offers a wide range of libraries and frameworks tailored for different purposes.
-8. Integration with Other Languages
-   Rust is engineered to interoperate seamlessly with other languages, particularly C. This interoperability allows Rust code to integrate with existing projects and leverage libraries written in other languages, facilitating gradual adoption and enhancing flexibility.
-   Rust stands out as a robust, secure, and efficient programming language well-suited for the demands of embedded systems. Its combination of memory safety, concurrency support, performance, and ease of integration positions Rust as a transformative tool in the embedded development landscape. As more companies and developers adopt Rust, its ecosystem and community continue to grow, further solidifying its role in advancing embedded technology.
+- Memory Safety - Rust's unique ownership system ensures memory safety without relying on a garbage collector. This system prevents common issues like null pointer dereferences, buffer overflows, and data races by enforcing strict rules on memory access and sharing.
+- Fearless Concurrency - Rust facilitates safe and efficient concurrent programming through its ownership and borrowing mechanisms. The compiler enforces rules that allow multiple threads to access data concurrently while minimizing the risk of data races.
+- Zero-Cost Abstractions - Rust offers high-level abstractions that do not incur runtime overhead. These abstractions are largely eliminated during compilation, resulting in performance that rivals low-level languages like C and C++.
+- Static Typing - being statically typed, Rust ensures that variable types are known at compile time. This feature helps catch many errors early in the development process, leading to more robust and reliable software.
+- Pattern Matching - Rust includes powerful pattern-matching capabilities that allow developers to express complex conditional logic in a concise and readable manner, enhancing code clarity and maintainability.
+- Cross-Platform Support - Rust is designed for portability across various platforms, enabling developers to write code that can run on different operating systems and hardware architectures with minimal modifications.
+- Community and Ecosystem - Rust boasts a vibrant and growing community, supported by its package manager, Cargo. Cargo simplifies dependency management and project setup, while the Rust ecosystem offers a wide range of libraries and frameworks tailored for different purposes.
+- Integration with Other Languages - Rust is engineered to interoperate seamlessly with other languages, particularly C. This interoperability allows Rust code to integrate with existing projects and leverage libraries written in other languages, facilitating gradual adoption and enhancing flexibility.
+  Rust stands out as a robust, secure, and efficient programming language well-suited for the demands of embedded systems. Its combination of memory safety, concurrency support, performance, and ease of integration positions Rust as a transformative tool in the embedded development landscape. As more companies and developers adopt Rust, its ecosystem and community continue to grow, further solidifying its role in advancing embedded technology.
 
 ## Bare-metal programming vs. RTOS
 
@@ -155,18 +145,18 @@ To develop in Rust with ESP microcontrollers, developers have two primary option
 
 Developing for embedded systems typically involves creating code on a host computer and deploying it to a target microcontroller with a different architecture. This process, known as cross-compiling, requires a specialized compiler toolchain configured to generate binaries compatible with the target's architecture, such as RISC-V. A compiler toolchain is a sequence of tools that transforms high-level code into a microcontroller-compatible binary executable. The toolchain usually includes three main stages:
 
-1. Compiling: The compiler converts high-level code (e.g., C, C++, Rust) into assembly language specific to the processor's Instruction Set Architecture (ISA). It performs syntax checking and code optimization but does not handle placement in memory or include pre-compiled library code.
-2. Assembling: The assembler translates assembly instructions into machine code, producing object files (e.g., with a `.obj` extension). These object files contain binary representations of the code that need to be linked.
-3. Linking: The linker combines object files from the compiler and pre-compiled libraries to create the final executable binary. It assigns memory addresses and organizes the program image, ensuring that all parts of the code are correctly placed in the microcontroller's memory space.
+- Compiling: The compiler converts high-level code (e.g., C, C++, Rust) into assembly language specific to the processor's Instruction Set Architecture (ISA). It performs syntax checking and code optimization but does not handle placement in memory or include pre-compiled library code.
+- Assembling: The assembler translates assembly instructions into machine code, producing object files (e.g., with a `.obj` extension). These object files contain binary representations of the code that need to be linked.
+- Linking: The linker combines object files from the compiler and pre-compiled libraries to create the final executable binary. It assigns memory addresses and organizes the program image, ensuring that all parts of the code are correctly placed in the microcontroller's memory space.
 
 This compilation process is essential for generating the executable code that can run on the embedded device, ensuring compatibility between the host development environment and the target hardware.
 
 ### Debug Toolchains
 
 After compiling, the executable code must be transferred and debugged on the target microcontroller. A debug toolchain encompasses the tools required to download code to the microcontroller and perform debugging tasks. The debug toolchain typically involves three components:
-1. Hardware Probe/Adapter: This device serves as the bridge between the host computer and the microcontroller, connecting via interfaces such as JTAG, Serial Wire Debug (SWD), or UART. It facilitates the flashing of code to the microcontroller and enables live debugging. Hardware probes can be integrated into development boards or exist as standalone adapters.
-2. Control Software: Software like OpenOCD communicates with the hardware probe to manage programming, debugging, and testing of the embedded target. It handles the communication protocols necessary to interact with the microcontroller.
-3. Debugging Software: Tools such as the GNU Debugger (GDB) provide frameworks for debugging the embedded application. They allow developers to set breakpoints, inspect registers and memory, and step through code to identify and resolve issues within the microcontroller.
+- Hardware Probe/Adapter: This device serves as the bridge between the host computer and the microcontroller, connecting via interfaces such as JTAG, Serial Wire Debug (SWD), or UART. It facilitates the flashing of code to the microcontroller and enables live debugging. Hardware probes can be integrated into development boards or exist as standalone adapters.
+- Control Software: Software like OpenOCD communicates with the hardware probe to manage programming, debugging, and testing of the embedded target. It handles the communication protocols necessary to interact with the microcontroller.
+- Debugging Software: Tools such as the GNU Debugger (GDB) provide frameworks for debugging the embedded application. They allow developers to set breakpoints, inspect registers and memory, and step through code to identify and resolve issues within the microcontroller.
 
 Together, these tools enable developers to efficiently develop, test, and debug embedded applications, ensuring that the code operates correctly on the target hardware.
 
@@ -208,9 +198,9 @@ Microcontroller pins serve as the physical connections between the internal peri
 
 Determining the function of each pin is managed programmatically by configuring the microcontroller, which utilizes internal multiplexers to select the desired function for each pin. The structure of this selection process typically involves three stages:
 
-1. Multiplexer Selection: The first stage involves a multiplexer that chooses the pin function (e.g., GPIO, ADC) based on software control. This allows a single pin to serve multiple roles depending on the application's requirements.
-2. Peripheral Configuration: The second stage connects the selected function to the corresponding peripheral. This peripheral is configured and controlled by software running on the CPU, often requiring the activation of a clock source to synchronize operations across the system.
-3. System Bus Connection: The final stage links the peripheral to the system bus, enabling the CPU to access and manipulate the peripheral's internal registers for configuration and data retrieval.
+- Multiplexer Selection: The first stage involves a multiplexer that chooses the pin function (e.g., GPIO, ADC) based on software control. This allows a single pin to serve multiple roles depending on the application's requirements.
+- Peripheral Configuration: The second stage connects the selected function to the corresponding peripheral. This peripheral is configured and controlled by software running on the CPU, often requiring the activation of a clock source to synchronize operations across the system.
+- System Bus Connection: The final stage links the peripheral to the system bus, enabling the CPU to access and manipulate the peripheral's internal registers for configuration and data retrieval.
 
 Understanding the pin interface is crucial, especially when programming in bare-metal environments, as the exact structure and capabilities of the pin multiplexers can vary between different microcontrollers. Consulting the microcontroller's reference manual or datasheet is essential to comprehend the specific configurations and functionalities available.
 
@@ -225,9 +215,9 @@ In embedded systems, the processor can be notified of peripheral events through 
 Interrupts, on the other hand, operate on a "push" mechanism. In this approach, peripherals notify the processor of events as they occur, allowing the processor to respond immediately without the need for constant checking. When an interrupt is triggered, the processor temporarily halts its current tasks, retrieves the corresponding Interrupt Service Routine (ISR) from the Interrupt Vector Table (IVT), executes the ISR to handle the event, and then resumes normal operation. This method is more efficient and responsive, reducing unnecessary processor load and power consumption. However, interrupts introduce complexity in development and debugging due to their asynchronous nature and potential for data race conditions, where multiple threads access shared data concurrently.
 
 Interrupts consist of three main components:
-1. Interrupt Source: The peripheral generating the event, such as an ADC completion or a GPIO button press.
-2. Interrupt Vector Table (IVT): A table mapping each interrupt source to its corresponding ISR's memory address, allowing the processor to locate and execute the appropriate ISR when an interrupt occurs.
-3. Interrupt Service Routine (ISR): The specific function that executes in response to an interrupt, handling the necessary operations related to the event.
+- Interrupt Source: The peripheral generating the event, such as an ADC completion or a GPIO button press.
+- Interrupt Vector Table (IVT): A table mapping each interrupt source to its corresponding ISR's memory address, allowing the processor to locate and execute the appropriate ISR when an interrupt occurs.
+- Interrupt Service Routine (ISR): The specific function that executes in response to an interrupt, handling the necessary operations related to the event.
 
 Interrupts are managed by an interrupt controller, which prioritizes and handles multiple simultaneous interrupts, ensuring that higher-priority events are addressed first. Additionally, both peripheral-level and CPU-level configurations are required to activate and manage interrupts effectively.
 
@@ -242,3 +232,84 @@ A common question in embedded development is whether to use polling or interrupt
 - Critical Timeliness: In safety-critical applications, such as automotive control systems, the timely detection and response to events are paramount. Interrupts ensure that the processor can handle urgent events immediately, whereas polling might introduce delays that could compromise safety.
 
 - Low-Power Operation: Many microcontrollers use interrupts to wake up from low-power sleep modes. If an application requires frequent transitions between active and sleep states to save power, interrupts are necessary to efficiently manage these transitions without the need for constant polling.
+
+# API reference
+
+## GPIO
+
+General Purpose Input/Output (GPIO) is a fundamental feature in microcontrollers that allows digital interaction with external devices. GPIO pins can be configured as either inputs or outputs and operate in two modes: digital or analog.
+
+- Digital Pins handle two states: high (e.g., 5V) and low (0V). They are essential for peripherals like timers, counters, PWM, and serial communication.
+- Analog Pins can handle a range of voltage values (e.g., 0-5V) and are used with peripherals such as ADCs (Analog-to-Digital Converters) and DACs (Digital-to-Analog Converters).
+
+Not all microcontroller pins support analog functions, so consulting the device datasheet is necessary for configuration.
+
+Active States in GPIO:
+
+- Active High: A high voltage level represents a "true" state.
+- Active Low: A low voltage level represents a "true" state.
+
+### RTOS version
+
+```rust
+// Take peripherals (singleton instance) and configure pin direction
+
+let peripherals = Peripherals::take().unwrap();
+let input_pin = PinDriver::input(peripherals.pins.gpio1).unwrap();
+let output_pin = PinDriver::output(peripherals.pins.gpio2).unwrap();
+
+// Configure pin pull (input pins)
+
+pin.set_pull(Pull::Up).unwrap(); // pull-up configuration
+other_pin.set_pull(Pull::Down).unwrap(); // pull-down configuration
+
+/* 
+  Configure pin drive (output pins)
+  - Push-Pull (default): Can drive the pin both high and low.
+  - Open-Drain: Can only pull the pin low.
+*/
+
+pin.into_output_od().unwrap();
+PinDriver::output_od(peripherals.pins.gpio1).unwrap(); // alternative
+
+/*
+   Configure interrupt type (input pins)
+   - Edge-Triggered: Detects rising, falling, or both edges.
+   - Level-Triggered: Detects high or low voltage levels.
+*/
+
+pin.set_interrupt_type(InterruptType::PosEdge).unwrap();
+pin.set_interrupt_type(InterruptType::NegEdge).unwrap();
+pin.set_interrupt_type(InterruptType::AnyEdge).unwrap();
+pin.set_interrupt_type(InterruptType::LowLevel).unwrap();
+pin.set_interrupt_type(InterruptType::HighLevel).unwrap();
+
+// Configure drive strength (output pins)
+
+pin.set_drive_strength(DriveStrength::I5mA).unwrap();
+pin.set_drive_strength(DriveStrength::I10mA).unwrap();
+
+// Reading input by polling
+
+loop {
+    if pin.is_low() {
+        println!("Low!");
+    }
+    if pin.is_high() {
+        println!("High!");
+    }
+}
+
+// Reading input by interrupts
+
+fn gpio_callback() {
+    // ISR code
+}
+unsafe { pin.subscribe(gpio_callback).unwrap() }
+pin.enable_interrupt().unwrap();
+
+// Writing output
+
+pin.set_low().unwrap();  // set pin to low
+pin.set_high().unwrap(); // set pin to high
+```
