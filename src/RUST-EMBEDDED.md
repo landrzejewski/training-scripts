@@ -313,3 +313,59 @@ pin.enable_interrupt().unwrap();
 pin.set_low().unwrap();  // set pin to low
 pin.set_high().unwrap(); // set pin to high
 ```
+
+## ADCs
+
+The physical world operates on analog principles, with parameters like temperature, pressure, and speed existing as continuous values. This analog nature creates a gap when interfacing with digital systems such as microcontrollers and microprocessors, which rely on discrete digital values. To bridge this gap, embedded systems must measure these analog parameters and respond accordingly. Analog-to-Digital Converters (ADCs) play a crucial role by converting analog voltages into digital values, enabling digital systems to process real-world physical data effectively.
+
+An ADC consists of several key components: the input signal, which is the analog voltage to be measured; the digital output, whose width is determined by the ADC's resolution (commonly 8, 10, 12, or 14 bits in controllers); a clock that drives the sampling process; and reference voltages that define the measurable voltage range. Higher resolution ADCs provide greater accuracy by allowing more precise digital representations of the analog input.
+
+The ADC conversion process involves three main steps:
+
+- Sampling: The ADC takes regular samples of the analog signal at specific intervals determined by the sampling rate, which depends on the required information frequency.
+- Quantization: Each sampled analog value is assigned a discrete digital value by dividing the analog range into finite intervals and mapping each sample to the nearest interval.
+- Encoding: The quantized values are converted into binary format, with the number of bits corresponding to the ADC's resolution. For example, an 8-bit ADC can represent 256 distinct digital values.
+
+ADCs employ different techniques for sampling and quantization, primarily categorized into:
+
+- Successive Approximation ADCs (SAR ADCs): These use a binary search algorithm to iteratively approximate the input analog signal's value, making them common in microcontrollers like the ESP32-C3 due to their balance of speed and accuracy.
+- Delta-Sigma (ΔΣ) ADCs: These oversample the input signal and use feedback loops to achieve high-resolution conversions, making them ideal for precision-critical applications such as audio and instrumentation.
+
+Microcontrollers typically have more analog input pins than available ADC instances, meaning each pin does not have a dedicated ADC. To efficiently manage multiple analog inputs without requiring separate ADCs for each, microcontrollers use multiplexing. An input multiplexer selects one analog channel at a time, allowing the single ADC to sequentially sample and convert multiple signals. This approach conserves space and reduces costs while enabling the handling of multiple analog inputs.
+
+ADCs support various conversion modes to accommodate different application needs:
+
+- One-Shot Mode: Also known as single conversion mode, the ADC performs a single conversion and then stops until triggered again. This mode is energy-efficient and suitable for occasional sampling where precise timing is not critical.
+- Continuous Mode: The ADC continuously performs conversions as long as it is powered and enabled, providing a steady stream of digital data. This mode is ideal for real-time data acquisition and processing but consumes more power.
+- Scan Mode: The ADC sequentially samples multiple analog input channels, converting each into digital form. This mode is useful for systems with multiple sensors, allowing efficient conversion without individual triggers. Scan mode can operate in either one-shot or continuous manners.
+
+### RTOS version
+
+```rust
+let peripherals = Peripherals::take().unwrap();
+
+// Creating an ADC Instance
+
+let adc1 = AdcDriver::new(peripherals.adc1).unwrap();
+
+/*
+    Configure ADC Pin(s)/Channel(s)
+    - Attenuation reduces the input signal’s amplitude to fit within the ADC’s 
+      reference voltage range.
+    - Resolution determines the precision of the digital representation of 
+      the analog signal, with common options being 8, 10, 12, or 14 bits.
+*/
+
+let config = AdcChannelConfig {
+    attenuation: DB_11,
+    calibration: true,
+    resolution: Resolution::Resolution12Bit,
+};
+
+// Instantiate ADC channel
+
+let mut channel = AdcChannelDriver::new(&adc1, peripherals.pins.gpio4, &config)
+    .unwrap();
+
+
+```

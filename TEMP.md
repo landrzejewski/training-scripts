@@ -176,78 +176,10 @@ In this example:
     - Pin Configuration: GPIO0 is set as an input with a pull-up resistor and configured to trigger an interrupt on a falling edge.
     - Global Context Assignment: The configured input pin is moved to the global context within a critical section to ensure thread-safe access.
 
-# ADCs (std)
 
-### Analog Nature of the Physical World and the Need for ADCs
-The physical world operates on analog principles, with parameters like temperature, pressure, and speed existing as continuous values. This analog nature creates a gap when interfacing with digital systems such as microcontrollers and microprocessors, which rely on discrete digital values. To bridge this gap, embedded systems must measure these analog parameters and respond accordingly. Analog-to-Digital Converters (ADCs) play a crucial role by converting analog voltages into digital values, enabling digital systems to process real-world physical data effectively.
 
-An ADC consists of several key components: the input signal, which is the analog voltage to be measured; the digital output, whose width is determined by the ADC's resolution (commonly 8, 10, 12, or 14 bits in controllers); a clock that drives the sampling process; and reference voltages that define the measurable voltage range. Higher resolution ADCs provide greater accuracy by allowing more precise digital representations of the analog input.
 
-### ADC Conversion Process: Sampling, Quantization, and Encoding
-The ADC conversion process involves three main steps:
-1. Sampling: The ADC takes regular samples of the analog signal at specific intervals determined by the sampling rate, which depends on the required information frequency.
-2. Quantization: Each sampled analog value is assigned a discrete digital value by dividing the analog range into finite intervals and mapping each sample to the nearest interval.
-3. Encoding: The quantized values are converted into binary format, with the number of bits corresponding to the ADC's resolution. For example, an 8-bit ADC can represent 256 distinct digital values.
-
-### Types of ADCs: Successive Approximation and Delta-Sigma
-ADCs employ different techniques for sampling and quantization, primarily categorized into:
-- Successive Approximation ADCs (SAR ADCs): These use a binary search algorithm to iteratively approximate the input analog signal's value, making them common in microcontrollers like the ESP32-C3 due to their balance of speed and accuracy.
-- Delta-Sigma (ΔΣ) ADCs: These oversample the input signal and use feedback loops to achieve high-resolution conversions, making them ideal for precision-critical applications such as audio and instrumentation.
-
-### Input Multiplexing in Microcontrollers
-Microcontrollers typically have more analog input pins than available ADC instances, meaning each pin does not have a dedicated ADC. To efficiently manage multiple analog inputs without requiring separate ADCs for each, microcontrollers use multiplexing. An input multiplexer selects one analog channel at a time, allowing the single ADC to sequentially sample and convert multiple signals. This approach conserves space and reduces costs while enabling the handling of multiple analog inputs.
-
-### ADC Conversion Modes: One-Shot, Continuous, and Scan
-ADCs support various conversion modes to accommodate different application needs:
-- One-Shot Mode: Also known as single conversion mode, the ADC performs a single conversion and then stops until triggered again. This mode is energy-efficient and suitable for occasional sampling where precise timing is not critical.
-- Continuous Mode: The ADC continuously performs conversions as long as it is powered and enabled, providing a steady stream of digital data. This mode is ideal for real-time data acquisition and processing but consumes more power.
-- Scan Mode: The ADC sequentially samples multiple analog input channels, converting each into digital form. This mode is useful for systems with multiple sensors, allowing efficient conversion without individual triggers. Scan mode can operate in either one-shot or continuous manners.
-
-### Configuring ADCs
-
-#### Take the Peripherals
-The initial step in configuring Analog-to-Digital Converters (ADCs) involves initializing the necessary peripherals, akin to the process used for setting up General-Purpose Input/Output (GPIO) pins. This setup is essential for all peripherals involved in ADC operation and ensures that each component is correctly prepared before moving on to subsequent configuration stages.
-
-#### Configure an ADC Instance
-Not all pins on a microcontroller support analog functions. For the ESP32-C3, specific analog pins are mapped to particular ADC instances, as detailed in the device’s reference manual. For example, using GPIO4 requires configuring ADC1. Multiple pins can share the same ADC instance through an internal multiplexer, allowing a single ADC to handle multiple input channels efficiently. Configuration is performed using the `AdcDriver::new` method, which initializes the desired ADC instance.
-
-```rust
-// Creating an ADC Instance
-let adc1 = AdcDriver::new(peripherals.adc1).unwrap();
-```
-This code snippet demonstrates how to instantiate ADC1 using the `AdcDriver::new` method, preparing it for subsequent configurations.
-
-#### Configure ADC Pin(s)/Channel(s)
-After instantiating the ADC, the next step is to configure the specific pins or channels to be used. This involves setting the pin to analog mode and configuring additional parameters such as attenuation and resolution.
-
-- Attenuation reduces the input signal’s amplitude to fit within the ADC’s reference voltage range.
-- Resolution determines the precision of the digital representation of the analog signal, with common options being 8, 10, 12, or 14 bits.
-
-Configuration is performed using the `AdcChannelDriver::new` method, which requires references to the ADC instance, the specific pin, and the channel configuration settings.
-
-```rust
-// The ADC Channel Config Configuration Struct Definition
-pub struct AdcChannelConfig {
-    pub attenuation: adc_atten_t,
-    pub resolution: Resolution,
-    pub calibration: bool,
-}
-```
-This struct defines the configuration parameters for an ADC channel, including attenuation level, resolution, and whether calibration is enabled.
-
-```rust
-// Configure ADC Channel
-let ch_config = AdcChannelConfig {
-    attenuation: DB_11,
-    calibration: true,
-    resolution: Resolution::Resolution12Bit,
-};
-
-// Instantiate ADC Channel
-let mut adc_chan = AdcChannelDriver::new(&adc1, peripherals.pins.gpio4, &ch_config)
-  .unwrap();
-```
-In this example, GPIO4 is configured as an ADC pin with 11 dB attenuation, 12-bit resolution, and calibration enabled. The `AdcChannelDriver::new` method ties the configuration to ADC1 and GPIO4.
+    
 
 ### Interacting with ADCs
 
@@ -2406,3 +2338,21 @@ Important Considerations:
 - Message Delivery: Every message published is delivered to all active subscribers.
 - Error Handling: Subscribers may receive errors if they miss messages due to buffer overflows or other issues.
 - Capacity Management: The channel's capacity should be chosen based on the expected message rate and subscriber readiness to prevent message loss.
+
+
+Role of link_patches() in Rust
+When developing in Rust, you’re often interacting with ESP-IDF's C/C++ ecosystem through FFI (Foreign Function Interface). The esp_idf_svc::sys::link_patches() function serves as a bridge to ensure that any necessary patches are correctly linked and applied within the Rust application context.
+Rust enforces strict safety and initialization rules, which means that any modifications to the system (like applying patches) must be handled meticulously to maintain these guarantees. link_patches() ensures that patches are applied in a manner consistent with Rust's safety expectations.
+
+Ordering::Relaxed is the most permissive memory ordering. When you use relaxed ordering for atomic operations, you are specifying that the operation should be atomic (i.e., indivisible and free from data races) but do not require any synchronization or ordering guarantees with respect to other atomic operations. This means:
+
+Atomicity is ensured: The operation will be performed atomically, preventing data races on that specific atomic variable.
+No synchronization or ordering: There are no guarantees about the visibility of this operation to other threads relative to other operations. Other threads might see these operations in a different order, or not see them at all without additional synchronization.
+
+
+
+
+blinky
+led-bar-blink
+button-press-counter
+
