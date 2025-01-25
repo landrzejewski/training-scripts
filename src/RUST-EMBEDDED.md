@@ -367,5 +367,344 @@ let config = AdcChannelConfig {
 let mut channel = AdcChannelDriver::new(&adc1, peripherals.pins.gpio4, &config)
     .unwrap();
 
+/*
+    Reading an ADC measurement
+    The code initiates a one-shot ADC measurement using the `read_raw` method,
+    which returns a raw digital value (`u16`) representing the sampled analog 
+    signal. To convert this digital value back to a physical parameter 
+    (e.g., voltage), further calculations are necessary. For convenience, 
+    the `AdcDriver` also provides a `read` method that directly returns the 
+    measured voltage in millivolts, simplifying the process of interpreting 
+    ADC readings.
+    
+    Currently, the ESP-IDF Hardware Abstraction Layer (HAL) does not 
+    offer high-level interfaces for interrupt-based operations.
+*/
 
+let sample: u16 = channel.read_raw().unwrap();
+```
+
+## Timers & Counters
+
+Timers and counters are fundamental peripherals in embedded systems, offering powerful functionalities despite their simplicity. A timer generates periodic or one-time signals at specified intervals and can measure the time between external hardware events. Common applications include triggering interrupts for updating displays, measuring button press durations, or creating delays. Conversely, a counter increments its count with each event occurrence, useful for tracking the number of button presses, motor revolutions, or network packets received. While timers and counters can be implemented in software, hardware implementations are preferred for maintaining high accuracy and efficiency. Most microcontrollers, including the ESP32-C3, come equipped with multiple dedicated timers and counters, each offering various features tailored to specific tasks.
+
+Timers and counters share a similar core circuitry consisting of a count register that increments with each clock event. The primary difference lies in the nature of the clock input: timers use a synchronous periodic clock signal to measure time intervals, whereas counters use asynchronous event-based signals to tally occurrences. Advanced microcontroller timers, such as those in the ESP32-C3, include additional features to enhance functionality:
+
+- Interrupts: Notify the processor of overflow events without continuous polling.
+- Auto Reload: Automatically reload a predefined value upon overflow for repetitive timing tasks.
+- Clock Source Configuration: Adjust the timer's clock frequency using prescalers to achieve desired timing resolutions.
+- Upcounting/Downcounting: Configure the timer to count upwards or downwards based on application needs.
+- Cascading Counters: Combine multiple counters to extend the maximum count range beyond a single register's capacity.
+
+These features enable timers and counters to handle complex tasks efficiently, such as generating precise time delays, managing periodic interrupts, or tracking high-frequency events.
+
+Timers and counters support various modes of operation to cater to different application requirements:
+
+- One-Shot Mode: The timer counts up or down once until it overflows, then stops. Ideal for generating single pulses or measuring single events.
+- Continuous Mode: The timer continuously counts without stopping, suitable for ongoing measurements or periodic interrupts.
+- Input Capture: Captures the timer's current count value upon external events, useful for measuring event durations or signal frequencies.
+- Output Compare: Triggers an action when the timer's count matches a predefined value, enabling waveform generation or synchronized actions.
+- Pulse Width Modulation (PWM): A specialized form of output compare that generates waveforms with adjustable duty cycles, commonly used for motor control, LED dimming, and signal generation.
+
+### RTOS version
+
+```rust
+let peripherals = Peripherals::take().unwrap();
+
+// Creating a timer with default configuration
+
+let timer = TimerDriver::new(peripherals.timer00, &Config::new())
+    .unwrap();
+    
+// Set start/reset count value to zero
+
+timer.set_counter(0_u64).unwrap();
+
+// Set timer to generate an alarm when the count reaches 1000
+
+timer.set_alarm(1000_u64).unwrap();
+
+// Enable the alarm to occur
+
+timer.enable_alarm(true).unwrap();
+
+// Enable timer to start counting
+
+timer.enable(true).unwrap();    
+    
+/*
+    To utilize timers effectively, developers typically set a start value 
+    and enable the timer to begin counting. The timer will continue counting 
+    until it reaches its maximum value, resets to the start value, 
+    or matches a predefined compare value (alarm). The `TimerDriver` methods 
+    facilitate these actions, allowing for precise control over the timer's 
+    behavior.
+*/    
+
+// Initialize timer clock value
+
+let timer_clk = 1_000_000_u64; // 1 MHz clock
+
+// Enable timer
+
+some_timer.enable(true).unwrap();
+
+loop {
+    // Reset timer to start from 0
+    some_timer.set_counter(0_u64).unwrap();
+    // Execute tasks
+    // Read counter value
+    let count = some_timer.counter().unwrap();
+    // Convert to seconds
+    let count_secs = count / timer_clk;
+    println!("Elapsed time in seconds is {}", count_secs);
+}
+
+/*
+    Using interrupts allows the timer to notify the application when an alarm or 
+    overflow event occurs, eliminating the need for continuous polling. This is 
+    achieved by configuring an Interrupt Service Routine (ISR) that gets called 
+    upon timer events.
+*/
+
+fn timer_alarm_callback() {
+    // Handle the timer alarm event
+}
+
+fn main() -> ! {
+    let peripherals = Peripherals::take().unwrap();
+    // Configure timer
+    let mut some_timer = TimerDriver::new(peripherals.timer00, &Config::new())
+        .unwrap();
+    // Set start/reset count value to zero
+    some_timer.set_counter(0_u64).unwrap();
+    // Set timer to generate an alarm if its value reaches 1000
+    some_timer.set_alarm(1000_u64).unwrap();
+    // Enable the alarm to occur
+    some_timer.enable_alarm(true).unwrap();
+    // Attach the ISR to the timer interrupt
+    unsafe { some_timer.subscribe(timer_alarm_callback).unwrap() }
+    // Enable interrupts
+    some_timer.enable_interrupt().unwrap();
+    // Enable timer to start counting
+    some_timer.enable(true).unwrap();
+    // Following application code
+    loop {
+        // Main application logic
+    }
+}
+```
+
+## PWM
+
+Pulse Width Modulation (PWM) is a waveform generation technique that controls the duration of the "on" time within each period of a square wave signal. Unlike traditional square waves, which have a fixed 50% duty cycle (equal on and off times), PWM allows the on-time to vary between 0% (completely off) and 100% (always on). This variability in the duty cycle—the ratio of on-time to the total period—enables precise control over the average voltage and current delivered to electronic components. For example, a PWM signal with a 50% duty cycle and a peak voltage of 5V results in an average voltage of 2.5V.
+
+The duty cycle is a crucial parameter in PWM, representing the percentage of time the signal is in the "on" state within a single period. Adjusting the duty cycle directly affects the average voltage of the PWM signal. For instance, increasing the duty cycle raises the average voltage, while decreasing it lowers the average voltage. This property makes PWM highly effective for applications that require varying power levels, such as controlling LED brightness, motor speeds, servo positions, and heating elements. By rapidly switching the signal on and off, PWM can simulate analog voltage levels, allowing digital systems to interface seamlessly with analog components.
+
+The ESP32-C3 microcontroller generates PWM signals using dedicated peripherals separate from its general-purpose timers. Specifically, the ESP32-C3 includes two peripherals for PWM generation:
+
+- LED PWM Controller (LEDC): Primarily designed for LED control, the LEDC peripheral can generate PWM signals with high precision. It offers six independent PWM generators (channels) driven by four timers. Each timer can be independently configured for clock and counting, while PWM channels select one of these timers as their reference. The PWM outputs are then connected to GPIO pins to produce the desired waveform.
+- Remote Control Peripheral (RMT): While not the focus of this chapter, the RMT peripheral also supports PWM generation and can be used for various remote control and communication applications.
+
+The LEDC peripheral's flexibility allows it to handle multiple PWM channels simultaneously, each with its own configuration, making it suitable for a wide range of applications beyond just LED control.
+
+### RTOS version
+
+```rust
+/*
+    Configure Timer0 with a clock of 50Hz and a resolution of 14 bits
+    The `TimerConfig` struct includes:
+    - frequency: Defines the desired timer clock frequency.
+    - resolution: Specifies the timer's counter width using an enumeration.
+    - speed_mode: Specifies the timer speed mode.
+*/
+
+let peripherals = Peripherals::take().unwrap();
+
+let timer_driver = LedcTimerDriver::new(
+    peripherals.ledc.timer0,
+    &TimerConfig::default()
+        .frequency(50.Hz())
+        .resolution(Resolution::Bits14),
+).unwrap();
+
+// Creating an LEDC PWM channel instance
+
+let mut driver = LedcDriver::new(
+    peripherals.ledc.channel0,
+    timer_driver,
+    peripherals.pins.gpio7,
+).unwrap();
+
+// Set desired duty cycle
+
+driver.set_duty(1000_u32).unwrap();
+
+// Get maximum possible duty value
+
+let max_duty = driver.get_max_duty();
+
+// Set duty cycle to 20%
+
+driver.set_duty(max_duty * 20 / 100).unwrap();
+
+// Enable PWM output
+
+driver.enable().unwrap();
+
+```
+
+## Serial communication
+
+Serial communication is a method of transmitting data sequentially over a single wire or a pair of wires, sending one bit at a time. This contrasts with parallel communication, where multiple bits are transmitted simultaneously across multiple channels. Serial communication is favored in embedded systems, microcontrollers, and various electronic devices due to its simplicity, reliability, and efficiency. The two primary modes of serial communication are I2C (Inter-Integrated Circuit) and SPI (Serial Peripheral Interface), each with its own advantages. I2C is a synchronous protocol designed for communication between microcontrollers and peripheral devices, offering a smaller footprint but lower bandwidth compared to SPI. SPI, also synchronous, is commonly used for short-distance communication between microcontrollers and peripherals, providing higher speed and bandwidth.
+
+UART stands for Universal Asynchronous Receiver/Transmitter and is a widely used serial communication interface that transmits and receives data asynchronously. This means that UART communication does not rely on a shared clock signal between the transmitter and receiver. Instead, both devices must agree on a specific baud rate—the number of bits transmitted per second—to ensure accurate data transmission. UARTs are prevalent in computers, microcontrollers, and embedded systems for communicating with other devices or computers over serial connections. In the ESP32-C3 microcontroller, UART is utilized for serial monitoring, enabling functionalities such as the `println!()` macro for debugging and logging.
+
+A UART communication channel typically consists of two main components: a transmitter and a receiver connected via a single wire for each direction. The transmitter converts parallel data from the device into a serial format, adding start and stop bits to indicate the beginning and end of each data packet. The receiver then converts the incoming serial data back into a parallel format for the device to process. UART communication can operate in full-duplex mode, allowing simultaneous transmission and reception of data using separate wires for each direction, or in half-duplex mode, where data transmission and reception occur alternately over a single wire.
+
+For successful UART communication, both the transmitter and receiver must have matching configurations. Key configuration options include:
+
+- Idle State: Determines the default state of the communication line when no data is being transmitted. For example, if the idle state is high, the receiver expects a transition from high to low to indicate the start of a transmission.
+- Baud Rate: Specifies the number of bits transmitted per second. Both devices must use the same baud rate to ensure data integrity. Mismatched baud rates can lead to incorrect data sampling and communication errors.
+- Data Bits: Defines the number of data bits per frame, commonly set to 8 or 9 bits. The number of data bits must be consistent between the transmitter and receiver.
+- Parity: An optional error-checking mechanism that can be set to odd, even, or none. Parity helps detect errors in transmitted data by adding an extra bit based on the number of set bits.
+- Stop Bits: Indicates the end of a data frame. UART frames typically include one or two stop bits to mark the conclusion of data transmission.
+- Flow Control: An optional feature that manages the rate of data transmission to prevent buffer overflow. Hardware flow control uses additional lines to signal the transmitter to pause or resume sending data based on the receiver's buffer status.
+
+Serial communication can be categorized into asynchronous and synchronous modes:
+
+- Asynchronous Serial Communication: In this mode, data is transmitted without a shared clock signal between the sender and receiver. Instead, both devices must agree on a baud rate to synchronize data transmission. UART is a prime example of asynchronous communication, relying on start and stop bits to frame data packets.
+- Synchronous Serial Communication: This mode uses a shared clock signal to synchronize data transmission between devices, eliminating the need for start and stop bits. Synchronous protocols like SPI and I2C rely on a common clock to ensure that data bits are transmitted and received accurately and efficiently.
+
+Several serial communication protocols are commonly employed in embedded systems, each suited to different use cases based on their characteristics:
+
+- UART (Universal Asynchronous Receiver/Transmitter): A popular asynchronous protocol used for point-to-point communication between devices. UART is ideal for simple, low-speed data transmission tasks such as debugging, logging, and interfacing with serial peripherals.
+- I2C (Inter-Integrated Circuit): A synchronous protocol designed for communication between multiple devices using only two wires (SDA for data and SCL for clock). I2C is suitable for connecting sensors, EEPROMs, and other low-speed peripherals to microcontrollers.
+- SPI (Serial Peripheral Interface): A high-speed synchronous protocol that uses four wires (MOSI, MISO, SCLK, and SS) for communication between a master device and one or more slave devices. SPI is ideal for applications requiring faster data transfer rates, such as interfacing with flash memory, displays, and high-speed sensors.
+
+### RTOS version
+
+```rust
+let peripherals = Peripherals::take().unwrap();
+
+/*
+    Configure a UART instance
+    - uart: An instance of a UART peripheral.
+    - tx: An output pin for transmitting serial bits.
+    - rx: An input pin for receiving serial bits.
+    - cts: (Optional) A pin for Clear To Send control flow.
+    - rts: (Optional) A pin for Request To Send control flow.
+    - config: A reference to a UART configuration.
+*/
+
+let tx = peripherals.pins.gpio5;
+let rx = peripherals.pins.gpio6;
+let config = config::Config::new().baudrate(Hertz(115_200));
+let uart = UartDriver::new(
+    peripherals.uart1,
+    tx,
+    rx,
+    Option::<gpio::Gpio0>::None,
+    Option::<gpio::Gpio1>::None,
+    &config,
+).unwrap();
+
+// Sending a single byte over UART
+
+uart.write(&[25_u8]).unwrap();
+
+// Receiving a single byte over UART
+
+let mut buf = [0_u8; 1];
+
+// The `BLOCK` constant ensures that the method waits for data.
+
+uart.read(&mut buf, BLOCK).unwrap();
+
+/*
+    Configure a I2C instance
+    - i2c: An instance of an I2C peripheral.
+    - sda: A bidirectional pin instance for the Serial Data Line.
+    - scl: A bidirectional pin instance for the Serial Clock Line.
+    - config: A reference to an I2C configuration.
+*/
+
+let i2c = peripherals.i2c0;
+let config = I2cConfig::new().baudrate(100.kHz().into());
+let i2c_driver = I2cDriver::new(i2c, sda, scl, &config).unwrap();
+
+// Sending a single byte over I2C to address 0x65
+
+i2c_driver.write(0x65, &[25], BLOCK).unwrap();
+
+// Receiving a single byte over I2C from address 0x65
+
+let mut buf = [0_u8; 1];
+
+i2c_driver.read(0x65, &mut buf, BLOCK).unwrap();
+```
+
+## Networking
+
+ESP devices have gained popularity for their robust connectivity and Internet of Things (IoT) capabilities, supported by both software and hardware innovations. In the Rust programming environment, the `esp-idf-svc` and `embedded-svc` crates provide comprehensive support for a wide range of networking services, including WiFi, Ethernet, HTTP client & server, MQTT, WebSockets (WS), Network Time Protocol (NTP), and Over-The-Air (OTA) updates. Establishing network access is a fundamental step for any IoT service, with WiFi being a common protocol used for this purpose. This section introduces the basics of programming WiFi, focusing on establishing a simple connection rather than delving into intricate configuration details, to maintain clarity and avoid code verbosity.
+
+### RTOS version
+
+```rust
+let peripherals = Peripherals::take().unwrap();
+
+
+// Connect to WiFi
+
+let sysloop = EspSystemEventLoop::take()?;
+let nvs = EspDefaultNvsPartition::take()?;
+let wifi = EspWifi::new(peripherals.modem, sysloop, Some(nvs))?;
+wifi.set_configuration(&Configuration::Client(ClientConfiguration {
+    ssid: "SSID".try_into().unwrap(),
+    password: "PASSWORD".try_into().unwrap(),
+    auth_method: AuthMethod::None,
+    ..Default::default()
+}))?;
+wifi.start()?;
+wifi.connect()?;
+wifi.wait_netif_up()?;
+
+// Configure an HTTP connection
+
+let httpconnection = EspHttpConnection::new(&Configuration {
+    use_global_ca_store: true,
+    crt_bundle_attach: Some(esp_idf_sys::esp_crt_bundle_attach),
+    ..Default::default()
+})?;
+
+// Exchanging requests & responses
+
+let url = "https://blog.pl";
+let _request = httpconnection.initiate_request(Method::Get, url, &[])?;
+httpconnection.initiate_response()?;
+
+let status_code = httpconnection.status();
+let status_msg = httpconnection.status_message();
+if let Some(content_type) = httpconnection.header("Content-Type") {
+    // Process the Content-Type header
+}
+
+// Create and configure an HTTP server
+
+let httpserver = EspHttpServer::new(&Configuration::default())?;
+
+httpserver.fn_handler("/", Method::Get, |request| {
+    let mut response = request.into_ok_response()?;
+    response.write("content".as_bytes())?;
+    Ok::<(), anyhow::Error>(())
+})?;
+
+// Using SNTP
+
+let ntp = EspSntp::new_default().unwrap();
+while ntp.get_sync_status() != SyncStatus::Completed {
+    // Wait or perform other tasks
+}
+let current_time = SystemTime::now();
+println!("Synchronized System Time: {:?}", current_time);
 ```

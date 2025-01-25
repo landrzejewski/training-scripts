@@ -176,33 +176,14 @@ In this example:
     - Pin Configuration: GPIO0 is set as an input with a pull-up resistor and configured to trigger an interrupt on a falling edge.
     - Global Context Assignment: The configured input pin is moved to the global context within a critical section to ensure thread-safe access.
 
-
-
-
     
 
-### Interacting with ADCs
 
-#### Blocking Read of Input
-To obtain a measurement from the ADC, a blocking approach can be used where the application initiates a one-shot measurement and waits for the result before continuing execution. This method is straightforward but halts other code execution until the measurement is complete, making it suitable for applications with occasional sampling needs where precise timing is not critical.
 
-```rust
-// Reading an ADC Measurement
-let sample: u16 = adc_chan.read_raw().unwrap();
-```
-This code initiates a one-shot ADC measurement using the `read_raw` method, which returns a raw digital value (`u16`) representing the sampled analog signal. To convert this digital value back to a physical parameter (e.g., voltage), further calculations are necessary.
 
-For convenience, the `AdcDriver` also provides a `read` method that directly returns the measured voltage in millivolts, simplifying the process of interpreting ADC readings.
 
-#### Non-blocking Read of Input by Interrupts
-Currently, the ESP-IDF Hardware Abstraction Layer (HAL) does not offer high-level interfaces for interrupt-based non-blocking ADC operations. However, developers can implement non-blocking reads using Rust's asynchronous programming features or by accessing lower-level bindings through `esp-idf-sys`. Non-blocking reads allow the application to continue executing other tasks while the ADC performs measurements, which is essential for applications requiring real-time data processing.
 
-Configuring and interacting with ADCs on the ESP32-C3 involves several key steps:
 
-1. Peripheral Initialization: Setting up necessary peripherals.
-2. ADC Instance Configuration: Selecting and initializing the appropriate ADC instance based on the pin used.
-3. ADC Pin/Channel Configuration: Configuring specific pins with appropriate attenuation and resolution settings.
-4. Reading ADC Values: Performing measurements either through blocking (synchronous) reads or implementing more complex non-blocking (asynchronous) methods.
 
 # ADCs (no-std)
 
@@ -293,153 +274,15 @@ let adc_reading: u16 = nb::block!(adc1.read_oneshot(&mut pin)).unwrap();
 
 The `block!` macro ensures that the code waits until the ADC reading is available before proceeding, providing a straightforward way to obtain accurate measurements without handling errors manually.
 
-# Programming Timers & Counters (std)
-Timers and counters are fundamental peripherals in embedded systems, offering powerful functionalities despite their simplicity. A timer generates periodic or one-time signals at specified intervals and can measure the time between external hardware events. Common applications include triggering interrupts for updating displays, measuring button press durations, or creating delays. Conversely, a counter increments its count with each event occurrence, useful for tracking the number of button presses, motor revolutions, or network packets received. While timers and counters can be implemented in software, hardware implementations are preferred for maintaining high accuracy and efficiency. Most microcontrollers, including the ESP32-C3, come equipped with multiple dedicated timers and counters, each offering various features tailored to specific tasks.
 
-### Counter/Timer Structure and Features
 
-Timers and counters share a similar core circuitry consisting of a count register that increments with each clock event. The primary difference lies in the nature of the clock input: timers use a synchronous periodic clock signal to measure time intervals, whereas counters use asynchronous event-based signals to tally occurrences. Advanced microcontroller timers, such as those in the ESP32-C3, include additional features to enhance functionality:
 
-1. Interrupts: Notify the processor of overflow events without continuous polling.
-2. Auto Reload: Automatically reload a predefined value upon overflow for repetitive timing tasks.
-3. Clock Source Configuration: Adjust the timer's clock frequency using prescalers to achieve desired timing resolutions.
-4. Upcounting/Downcounting: Configure the timer to count upwards or downwards based on application needs.
-5. Cascading Counters: Combine multiple counters to extend the maximum count range beyond a single register's capacity.
 
-These features enable timers and counters to handle complex tasks efficiently, such as generating precise time delays, managing periodic interrupts, or tracking high-frequency events.
 
-### Counter/Timer Modes of Operation
 
-Timers and counters support various modes of operation to cater to different application requirements:
 
-1. One-Shot Mode: The timer counts up or down once until it overflows, then stops. Ideal for generating single pulses or measuring single events.
-2. Continuous Mode: The timer continuously counts without stopping, suitable for ongoing measurements or periodic interrupts.
-3. Input Capture: Captures the timer's current count value upon external events, useful for measuring event durations or signal frequencies.
-4. Output Compare: Triggers an action when the timer's count matches a predefined value, enabling waveform generation or synchronized actions.
-5. Pulse Width Modulation (PWM): A specialized form of output compare that generates waveforms with adjustable duty cycles, commonly used for motor control, LED dimming, and signal generation.
 
-Timers and counters are versatile peripherals essential for managing time-based and event-based tasks in embedded systems. The ESP32-C3 microcontroller offers robust timer and counter functionalities with features like interrupts, auto-reload, clock source configuration, and various modes of operation. By leveraging these capabilities, developers can implement precise timing mechanisms, event counting, waveform generation, and more. The provided Rust code examples illustrate basic configurations for one-shot and continuous timer modes, including interrupt handling, enabling developers to integrate timers and counters effectively into their applications.
 
-### Configuring Timers
-
-Configuring timers on the ESP32-C3 involves several methodical steps to ensure accurate and efficient timing operations. This process is similar to configuring other peripherals like GPIOs and includes initializing peripherals, setting up timer instances, and configuring specific timer settings.
-
-#### Take the Peripherals
-The initial step mirrors the peripheral initialization process used for GPIOs, as demonstrated before. This involves acquiring and setting up the necessary peripherals required for timer operation.
-
-#### Configure a Timer Instance
-The ESP32-C3 chip features two hardware timer groups, each containing a general-purpose hardware timer and a system watchdog timer. These timers are 54-bit wide with 16-bit prescalers and offer functionalities such as auto-reload, alarm generation, up/down counting, and interrupt generation. To configure a timer, the
-TimerDriver::new method from the `esp_idf_hal::timer` module is used. This method requires a Timer peripheral instance (e.g., Timer00) and a reference to a configuration instance.
-
-```rust
-// Creating a Timer Instance
-let some_timer = TimerDriver::new(peripherals.timer00, &Config::new())
-  .unwrap();
-```
-In this example, `Timer00` is instantiated using the default configuration, which sets the divider to 80, and both `xtal` and `auto_reload` to `false`. The ESP32-C3 provides two general-purpose timers, `timer00` and `timer01`, which can be chosen based on application requirements.
-
-#### Configure Timer Control Methods
-After instantiating the timer, various control methods are available to manage its behavior. These methods allow enabling/disabling the timer, setting the counter value, configuring alarms, and more.
-
-```rust
-// Enable or disable the timer
-pub fn enable(&mut self, enable: bool) -> Result<(), EspError>
-
-// Manually set the current counter value
-pub fn set_counter(&mut self, value: u64) -> Result<(), EspError>
-
-// Enable or disable the alarm feature
-pub fn enable_alarm(&mut self, enable: bool) -> Result<(), EspError>
-
-// Set the alarm compare value
-pub fn set_alarm(&mut self, value: u64) -> Result<(), EspError>
-```
-
-These methods provide granular control over the timer's operation, allowing developers to start, stop, reset, and configure alarm conditions as needed.
-
-```rust
-// Set start/reset count value to zero
-some_timer.set_counter(0_u64).unwrap();
-
-// Set timer to generate an alarm when the count reaches 1000
-some_timer.set_alarm(1000_u64).unwrap();
-
-// Enable the alarm to occur
-some_timer.enable_alarm(true).unwrap();
-
-// Enable timer to start counting
-some_timer.enable(true).unwrap();
-```
-In this example, the timer is configured to start counting from zero and generate an alarm when the count reaches 1000. The alarm is enabled, and the timer is started to begin counting.
-
-Note: While the ESP32-C3 timers support features like up/down counting, the current `esp-idf-hal` library may not provide high-level methods for these functionalities. Developers may need to use lower-level abstractions or await future library updates to access these features.
-
-### Interacting with Timers
-
-#### Controlling Timers/Counters
-To utilize timers effectively, developers typically set a start value and enable the timer to begin counting. The timer will continue counting until it reaches its maximum value, resets to the start value, or matches a predefined compare value (alarm). The `TimerDriver` methods facilitate these actions, allowing for precise control over the timer's behavior.
-
-```rust
-// Initialize Timer Clock Value
-let timer_clk = 1_000_000_u64; // 1 MHz clock
-
-// Enable Timer to Start Counting
-some_timer.enable(true).unwrap();
-
-loop {
-    // Reset Timer Count to start from 0
-    some_timer.set_counter(0_u64).unwrap();
-    // Perform Some Operations
-    // Read Counter Value
-    let count = some_timer.counter().unwrap();
-    // Convert to Seconds
-    let count_secs = count / timer_clk;
-    // Print Timer Elapsed Time (from 0)
-    println!("Elapsed Timer Duration in Seconds is {}", count_secs);
-    // Additional logic can be added here
-}
-```
-In this example, the timer is enabled to start counting from zero. The loop performs operations and periodically reads the current count value, converting it to seconds based on the timer's clock frequency (1 MHz in this case).
-
-#### Reading Timers/Counters by Interrupts
-Using interrupts allows the timer to notify the application when an alarm or overflow event occurs, eliminating the need for continuous polling. This is achieved by configuring an Interrupt Service Routine (ISR) that gets called upon timer events.
-
-```rust
-// ISR Definition
-fn timer_alarm_int_callback() {
-    // ISR Code: Handle the timer alarm event
-}
-
-// Main Function
-fn main() -> ! {
-    // Any Startup Code
-    // Take Peripherals
-    let peripherals = Peripherals::take().unwrap();
-    // Configure Timer
-    let mut some_timer = TimerDriver::new(peripherals.timer00, &Config::new()).unwrap();
-    // Timer Settings
-    // Set Start/Reset Count Value to Zero
-    some_timer.set_counter(0_u64).unwrap();
-    // Set Timer to Generate an Alarm if its Value Reaches 1000
-    some_timer.set_alarm(1000_u64).unwrap();
-    // Enable the Alarm to Occur
-    some_timer.enable_alarm(true).unwrap();
-    // Interrupt Setup
-    // Attach the ISR to the timer interrupt
-    unsafe { some_timer.subscribe(timer_alarm_int_callback).unwrap() }
-    // Enable Interrupts
-    some_timer.enable_interrupt().unwrap();
-    // Enable Timer to Start Counting
-    some_timer.enable(true).unwrap();
-    // Following Application Code
-    loop {
-        // Main application logic can continue here
-    }
-}
-```
-This example demonstrates setting up a timer to generate an alarm when the count reaches 1000. An ISR is defined to handle the alarm event. The timer is configured, the ISR is subscribed to the timer interrupt, and interrupts are enabled to allow the ISR to be called upon timer events.
-
-Configuring timers on the ESP32-C3 involves initializing the necessary peripherals, setting up timer instances with appropriate configurations, and utilizing control methods to manage timer operations. Timers can operate in various modes, such as one-shot or continuous, and can interact with interrupts to handle overflow or alarm events efficiently. The provided Rust code examples illustrate how to create and configure timers, set alarms, and handle timer events through both polling and interrupt-driven approaches. By leveraging these configurations, developers can implement precise timing mechanisms, event counting, and responsive interrupt handling in their embedded applications.
 
 # ProgrammingTimers & Counters (no-std)
 
@@ -600,108 +443,14 @@ loop {
 
 In this example, `timer0` is started and then continuously reset within a loop. The elapsed time since the epoch is calculated and printed, providing real-time feedback on the timer’s state. This polling approach ensures that the application can monitor the timer's progress and react accordingly.
 
-# PWM (std)
 
-Pulse Width Modulation (PWM) is a waveform generation technique that controls the duration of the "on" time within each period of a square wave signal. Unlike traditional square waves, which have a fixed 50% duty cycle (equal on and off times), PWM allows the on-time (Ton) to vary between 0% (completely off) and 100% (always on). This variability in the duty cycle—the ratio of on-time to the total period—enables precise control over the average voltage and current delivered to electronic components. For example, a PWM signal with a 50% duty cycle and a peak voltage of 5V results in an average voltage of 2.5V.
 
-### Duty Cycle and Its Importance
 
-The duty cycle is a crucial parameter in PWM, representing the percentage of time the signal is in the "on" state within a single period. Adjusting the duty cycle directly affects the average voltage of the PWM signal. For instance, increasing the duty cycle raises the average voltage, while decreasing it lowers the average voltage. This property makes PWM highly effective for applications that require varying power levels, such as controlling LED brightness, motor speeds, servo positions, and heating elements. By rapidly switching the signal on and off, PWM can simulate analog voltage levels, allowing digital systems to interface seamlessly with analog components.
 
-### PWM in Embedded Systems
 
-In embedded systems, PWM is widely used for current control tasks. By adjusting the duty cycle, PWM can control the amount of electricity flowing through a load. This is analogous to adjusting a faucet to control water flow—turning it on more frequently increases the flow, while turning it off more often decreases it. PWM achieves this by altering the proportion of time the signal is high (on) versus low (off) within each cycle. This technique is essential for applications like dimming LEDs, regulating motor speeds, positioning servos, and managing the intensity of heating elements.
 
-### PWM Generation in ESP32-C3
 
-The ESP32-C3 microcontroller generates PWM signals using dedicated peripherals separate from its general-purpose timers. Specifically, the ESP32-C3 includes two peripherals for PWM generation:
 
-1. LED PWM Controller (LEDC): Primarily designed for LED control, the LEDC peripheral can generate PWM signals with high precision. It offers six independent PWM generators (channels) driven by four timers. Each timer can be independently configured for clock and counting, while PWM channels select one of these timers as their reference. The PWM outputs are then connected to GPIO pins to produce the desired waveform.
-
-2. Remote Control Peripheral (RMT): While not the focus of this chapter, the RMT peripheral also supports PWM generation and can be used for various remote control and communication applications.
-
-The LEDC peripheral's flexibility allows it to handle multiple PWM channels simultaneously, each with its own configuration, making it suitable for a wide range of applications beyond just LED control.
-
-Pulse Width Modulation is a versatile and essential technique in embedded systems for controlling the average voltage and current delivered to electronic components by varying the duty cycle of square wave signals. In the ESP32-C3 microcontroller, PWM is efficiently handled by dedicated peripherals like the LEDC, which offers multiple channels and timers for generating precise PWM signals. This capability enables developers to implement a variety of applications, including LED dimming, motor speed control, and more, by leveraging the adjustable duty cycle to achieve the desired power levels and performance.
-
-### Configuring Pulse Width Modulation (PWM)
-
-Configuring PWM on the ESP32-C3 involves a series of methodical steps to set up the LED PWM Controller (LEDC) peripheral for generating precise PWM signals. This process ensures that PWM channels are correctly initialized and configured to control various applications such as LED brightness, motor speed, and more.
-
-#### Take the Peripherals
-The initial step in configuring PWM mirrors the peripheral initialization process used in previous configurations, such as GPIO setup. This involves acquiring and setting up the necessary peripherals required for PWM operation, ensuring that all components are ready for subsequent configuration stages.
-
-#### Configure an LEDC Timer Instance
-The LEDC peripheral is divided into two main parts: timers and PWM generators/channels. Timers drive the PWM channels and are independently configurable from the PWM generators. To configure an LEDC timer, the `LedcTimerDriver` struct's `new` method is used, which requires two arguments: an LEDC timer peripheral instance (e.g., `timer0`) and a `TimerConfig` configuration instance.
-
-```rust
-// The Timer Configuration Struct
-pub struct TimerConfig {
-    pub frequency: Hertz,
-    pub resolution: Resolution,
-    pub speed_mode: SpeedMode,
-}
-```
-The `TimerConfig` struct includes:
-- frequency: Defines the desired timer clock frequency.
-- resolution: Specifies the timer's counter width using an enumeration.
-- speed_mode: Specifies the timer speed mode, with the ESP32-C3 offering a single option.
-
-```rust
-// Configure Timer0 with a clock of 50Hz and a resolution of 14 bits
-let timer_driver = LedcTimerDriver::new(
-    peripherals.ledc.timer0,
-    &TimerConfig::default()
-        .frequency(50.Hz())
-        .resolution(Resolution::Bits14),
-)
-.unwrap();
-```
-In this example, `timer0` is configured with a 50Hz clock frequency and a 14-bit resolution. The ESP32-C3 LEDC peripheral includes four timers (`timer0` to `timer3`), each of which can be independently selected based on application requirements.
-
-#### Configure an LEDC PWM Channel Instance
-After configuring the timer, the next step is to set up the PWM channel. This is done using the `LedcDriver` struct's `new` method, which requires three parameters: a PWM channel instance (e.g., `channel0`), the previously configured timer driver instance, and a GPIO pin instance where the PWM signal will be output.
-
-```rust
-// Creating an LEDC PWM Channel Instance
-let mut driver = LedcDriver::new(
-    peripherals.ledc.channel0,
-    timer_driver,
-    peripherals.pins.gpio7,
-)
-.unwrap();
-```
-In this example, `channel0` of the LEDC peripheral is associated with `gpio7` for PWM signal output. The `LedcDriver` abstraction handles the necessary pin configurations internally, simplifying the setup process.
-
-### Interacting with PWM
-
-#### Controlling the LEDC PWM Peripheral
-Once the PWM channel is configured, controlling the PWM signal involves setting the desired duty cycle and enabling the PWM output. The duty cycle determines the proportion of time the signal is in the "on" state within each period.
-
-```rust
-// Configuring Duty Cycle and Enabling PWM Output
-// Set Desired Duty Cycle
-some_ledc_driver_inst.set_duty(1000_u32).unwrap();
-// Enable PWM Output
-some_ledc_driver_inst.enable().unwrap();
-```
-Here, the `set_duty` method sets the duty cycle based on a value that corresponds to the PWM resolution. After setting the duty cycle, the `enable` method activates the PWM signal on the configured GPIO pin.
-
-#### Reading from the LEDC PWM Peripheral
-While generating PWM signals typically doesn't require reading events, it's often useful to read the current duty cycle or determine the maximum possible duty value for dynamic adjustments.
-
-```rust
-// Configuring 20% Duty Cycle and Enabling PWM Output
-// Get Maximum Possible Duty Value
-let max_duty = some_ledc_driver_inst.get_max_duty();
-// Set Duty Cycle to 20%
-some_ledc_driver_inst.set_duty(max_duty * 20 / 100).unwrap();
-// Enable PWM Output
-some_ledc_driver_inst.enable().unwrap();
-```
-In this example, the `get_max_duty` method retrieves the maximum duty cycle value based on the configured resolution. The duty cycle is then set to 20% by calculating 20% of the maximum duty value, and the PWM output is enabled accordingly.
-
-Configuring PWM on the ESP32-C3 involves initializing the necessary peripherals, setting up LEDC timers, and configuring PWM channels to generate precise PWM signals. By following these steps and utilizing the provided code examples, developers can effectively control various applications such as LED brightness, motor speeds, and more. The LEDC peripheral's flexibility, with multiple timers and channels, allows for simultaneous PWM signal generation tailored to diverse embedded system requirements.
 
 # PWM (no-std)
 
@@ -827,240 +576,24 @@ This method allows the application to dynamically adjust the duty cycle, enablin
 
 While PWM generation typically does not require reading from the peripheral, certain applications may benefit from monitoring the current state. The `max_duty_cycle` method can be used to retrieve the maximum duty cycle value supported by the configuration.
 
-# Serial Communication (std)
-Serial communication is a method of transmitting data sequentially over a single wire or a pair of wires, sending one bit at a time. This contrasts with parallel communication, where multiple bits are transmitted simultaneously across multiple channels. Serial communication is favored in embedded systems, microcontrollers, and various electronic devices due to its simplicity, reliability, and efficiency. The two primary modes of serial communication are I2C (Inter-Integrated Circuit) and SPI (Serial Peripheral Interface), each with its own advantages. I2C is a synchronous protocol designed for communication between microcontrollers and peripheral devices, offering a smaller footprint but lower bandwidth compared to SPI. SPI, also synchronous, is commonly used for short-distance communication between microcontrollers and peripherals, providing higher speed and bandwidth.
 
-### UART (Universal Asynchronous Receiver/Transmitter)
 
-UART stands for Universal Asynchronous Receiver/Transmitter and is a widely used serial communication interface that transmits and receives data asynchronously. This means that UART communication does not rely on a shared clock signal between the transmitter and receiver. Instead, both devices must agree on a specific baud rate—the number of bits transmitted per second—to ensure accurate data transmission. UARTs are prevalent in computers, microcontrollers, and embedded systems for communicating with other devices or computers over serial connections. In the ESP32-C3 microcontroller, UART is utilized for serial monitoring, enabling functionalities such as the `println!()` macro for debugging and logging.
 
-A UART communication channel typically consists of two main components: a transmitter and a receiver connected via a single wire for each direction. The transmitter converts parallel data from the device into a serial format, adding start and stop bits to indicate the beginning and end of each data packet. The receiver then converts the incoming serial data back into a parallel format for the device to process. UART communication can operate in full-duplex mode, allowing simultaneous transmission and reception of data using separate wires for each direction, or in half-duplex mode, where data transmission and reception occur alternately over a single wire.
 
-### UART Configuration Parameters
 
-For successful UART communication, both the transmitter and receiver must have matching configurations. Key configuration options include:
 
-- Idle State: Determines the default state of the communication line when no data is being transmitted. For example, if the idle state is high, the receiver expects a transition from high to low to indicate the start of a transmission.
 
-- Baud Rate: Specifies the number of bits transmitted per second. Both devices must use the same baud rate to ensure data integrity. Mismatched baud rates can lead to incorrect data sampling and communication errors.
 
-- Data Bits: Defines the number of data bits per frame, commonly set to 8 or 9 bits. The number of data bits must be consistent between the transmitter and receiver.
 
-- Parity: An optional error-checking mechanism that can be set to odd, even, or none. Parity helps detect errors in transmitted data by adding an extra bit based on the number of set bits.
 
-- Stop Bits: Indicates the end of a data frame. UART frames typically include one or two stop bits to mark the conclusion of data transmission.
 
-- Flow Control: An optional feature that manages the rate of data transmission to prevent buffer overflow. Hardware flow control uses additional lines to signal the transmitter to pause or resume sending data based on the receiver's buffer status.
 
-### Asynchronous vs. Synchronous Serial Communication
 
-Serial communication can be categorized into asynchronous and synchronous modes:
 
-1. Asynchronous Serial Communication: In this mode, data is transmitted without a shared clock signal between the sender and receiver. Instead, both devices must agree on a baud rate to synchronize data transmission. UART is a prime example of asynchronous communication, relying on start and stop bits to frame data packets.
 
-2. Synchronous Serial Communication: This mode uses a shared clock signal to synchronize data transmission between devices, eliminating the need for start and stop bits. Synchronous protocols like SPI and I2C rely on a common clock to ensure that data bits are transmitted and received accurately and efficiently.
 
-### Common Serial Communication Protocols in Embedded Systems
 
-Several serial communication protocols are commonly employed in embedded systems, each suited to different use cases based on their characteristics:
 
-- UART (Universal Asynchronous Receiver/Transmitter): A popular asynchronous protocol used for point-to-point communication between devices. UART is ideal for simple, low-speed data transmission tasks such as debugging, logging, and interfacing with serial peripherals.
-
-- I2C (Inter-Integrated Circuit): A synchronous protocol designed for communication between multiple devices using only two wires (SDA for data and SCL for clock). I2C is suitable for connecting sensors, EEPROMs, and other low-speed peripherals to microcontrollers.
-
-- SPI (Serial Peripheral Interface): A high-speed synchronous protocol that uses four wires (MOSI, MISO, SCLK, and SS) for communication between a master device and one or more slave devices. SPI is ideal for applications requiring faster data transfer rates, such as interfacing with flash memory, displays, and high-speed sensors.
-
-Serial communication is an essential method for data transmission in embedded systems, offering various protocols tailored to different application needs. UART, an asynchronous protocol, is widely used for its simplicity and reliability in point-to-point communication, particularly for debugging and interfacing with serial devices. Ensuring that both transmitting and receiving devices share matching configurations—such as baud rate, data bits, parity, and stop bits—is crucial for successful UART communication. Additionally, understanding the differences between asynchronous and synchronous serial communication helps in selecting the appropriate protocol for specific embedded applications, whether it's the straightforward UART for simple tasks or the high-speed SPI for more demanding data transfer requirements.
-
-### Configuring UART
-
-#### Take the Peripherals
-The initial step in configuring UART is identical to previous peripheral setups. This involves acquiring and initializing the necessary peripherals required for UART operation to ensure they are ready for configuration.
-
-#### Configure a UART Instance
-To configure UART on the ESP32-C3, the `UartDriver` abstraction from the `esp-idf-hal` library is utilized. The `new` method of `UartDriver` is responsible for creating a UART instance and requires six parameters:
-
-1. uart: An instance of a UART peripheral.
-2. tx: An output pin for transmitting serial bits.
-3. rx: An input pin for receiving serial bits.
-4. cts: (Optional) A pin for Clear To Send control flow.
-5. rts: (Optional) A pin for Request To Send control flow.
-6. config: A reference to a UART configuration.
-
-UartDriver `new` Method Signature
-```rust
-pub fn new<UART: Uart>(
-    uart: impl Peripheral<P = UART> + 'd,
-    tx: impl Peripheral<P = impl OutputPin> + 'd,
-    rx: impl Peripheral<P = impl InputPin> + 'd,
-    cts: Option<impl Peripheral<P = impl InputPin> + 'd>,
-    rts: Option<impl Peripheral<P = impl OutputPin> + 'd>,
-    config: &Config
-) -> Result<Self, EspError>
-```
-
-The `Config` struct for UART resides in the `uart::config` module and includes several members to fine-tune UART settings. While not all members need to be explicitly configured, commonly used configurations like baud rate can be set using the provided methods.
-
-The `uart::config::Config` Configuration Struct
-```rust
-pub struct Config {
-    pub baudrate: Hertz,
-    pub data_bits: DataBits,
-    pub parity: Parity,
-    pub stop_bits: StopBits,
-    pub flow_control: FlowControl,
-    pub flow_control_rts_threshold: u8,
-    pub source_clock: SourceClock,
-    pub intr_flags: EnumSet<InterruptType>,
-    pub event_config: EventConfig,
-    pub rx_fifo_size: usize,
-    pub tx_fifo_size: usize,
-    pub queue_size: usize,
-    /* private fields */
-}
-```
-
-Instantiating and Configuring `uart1` as 8N1 with 115200 Hz Baud and No Flow Control
-```rust
-let tx = peripherals.pins.gpio5;
-let rx = peripherals.pins.gpio6;
-let config = config::Config::new().baudrate(Hertz(115_200));
-let uart = UartDriver::new(
-    peripherals.uart1,
-    tx,
-    rx,
-    Option::<gpio::Gpio0>::None,
-    Option::<gpio::Gpio1>::None,
-    &config,
-)
-.unwrap();
-```
-In this example, `uart1` is instantiated with an 8N1 configuration (8 data bits, no parity, 1 stop bit) and a baud rate of 115200 Hz. Hardware flow control is disabled by setting `cts` and `rts` to `None`. The `turbofish` syntax (`::<gpio::Gpio0>`) assists the compiler in inferring the correct types for the optional flow control pins.
-
-### Interacting with UART
-
-#### Writing to the UART Peripheral
-To send data over UART, the `write` method of the `UartDriver` is used. This method takes a slice of `u8` data and transmits each byte sequentially.
-
-Signature of `UartDriver` `write` Method
-```rust
-pub fn write(&self, bytes: &[u8]) -> Result<usize, EspError>
-```
-
-Example of Sending a Single Byte Over UART
-```rust
-some_uart_instance.write(&[25_u8]).unwrap();
-```
-This example sends a single byte with the value `25` over the configured UART channel. The `write` method handles the conversion of parallel data to serial format and manages the transmission of bits.
-
-#### Blocking Read from the UART Peripheral
-Receiving data over UART involves using the `read` method, which performs a blocking read operation. This means the code will wait (block) until the specified number of bytes are received or the timeout is reached.
-
-Signature of `UartDriver` `read` Method
-```rust
-pub fn read(
-    &self,
-    buf: &mut [u8],
-    timeout: TickType_t
-) -> Result<usize, EspError>
-```
-
-Example of Receiving a Single Byte Over UART
-```rust
-let mut buf = [0_u8; 1];
-// BLOCK is a constant containing the largest possible u32 value
-some_uart_instance.read(&mut buf, BLOCK).unwrap();
-```
-In this example, the `read` method attempts to receive a single byte and stores it in `buf`. The `BLOCK` constant ensures that the method waits indefinitely until data is received.
-
-### Configuring I2C
-
-#### Take the Peripherals
-Similar to UART configuration, the first step in setting up I2C involves taking and initializing the necessary peripherals as demonstrated before.
-
-#### Create and Configure an I2C Instance
-The `I2cDriver` abstraction from the `esp-idf-hal` library is used to create and configure an I2C instance. The `new` method requires four parameters:
-
-1. i2c: An instance of an I2C peripheral.
-2. sda: A bidirectional pin instance for the Serial Data Line.
-3. scl: A bidirectional pin instance for the Serial Clock Line.
-4. config: A reference to an I2C configuration.
-
-I2cDriver `new` Method Signature
-```rust
-pub fn new<I2C: I2c>(
-    _i2c: impl Peripheral<P = I2C> + 'd,
-    sda: impl Peripheral<P = impl InputPin + OutputPin> + 'd,
-    scl: impl Peripheral<P = impl InputPin + OutputPin> + 'd,
-    config: &Config
-) -> Result<Self, EspError>
-```
-
-The `Config` struct for I2C is defined in the `i2c::config` module and includes various parameters to tailor the I2C communication settings.
-
-The `i2c::config::Config` Configuration Struct
-```rust
-pub struct Config {
-    pub baudrate: Hertz,
-    pub sda_pullup_enabled: bool,
-    pub scl_pullup_enabled: bool,
-    pub timeout: Option<APBTickType>,
-    pub intr_flags: EnumSet<InterruptType>,
-}
-```
-
-*Example of Instantiating and Configuring an I2C Channel Using the `i2c0` Peripheral
-```rust
-let i2c_instance = peripherals.i2c0;
-let config = I2cConfig::new().baudrate(100.kHz().into());
-let i2c_driver = I2cDriver::new(i2c, sda, scl, &config).unwrap();
-```
-This example configures the `i2c0` peripheral with a baud rate of 100 kHz. The `I2cDriver::new` method initializes the I2C instance with the specified SDA and SCL pins and the provided configuration.
-
-### Interacting with I2C
-
-#### Writing to the I2C Peripheral
-To send data over I2C, the `write` method of the `I2cDriver` is utilized. This method requires the slave address, a slice of `u8` data to send, and a timeout value.
-
-Signature of `I2cDriver` `write` Method
-```rust
-pub fn write(
-    &mut self,
-    addr: u8,
-    bytes: &[u8],
-    timeout: TickType_t
-) -> Result<(), EspError>
-```
-
-Example of Sending a Single Byte Over I2C to Address 0x65
-```rust
-// BLOCK is a constant containing the largest possible u32 value
-some_i2c_instance.write(0x65, &[25], BLOCK).unwrap();
-```
-In this example, a single byte with the value `25` is sent to the I2C slave device with the address `0x65`. The `BLOCK` constant ensures that the method waits until the write operation is completed.
-
-#### Reading from the I2C Peripheral
-Receiving data over I2C involves using the `read` method, which retrieves data from a specified slave address into a provided buffer within a given timeout period.
-
-Signature of `I2cDriver` `read` Method
-```rust
-pub fn read(
-    &mut self,
-    addr: u8,
-    buffer: &mut [u8],
-    timeout: TickType_t
-) -> Result<(), EspError>
-```
-
-Example of Receiving a Single Byte Over I2C from Address 0x65
-```rust
-let mut buf = [0_u8; 1];
-// BLOCK is a constant containing the largest possible u32 value
-some_i2c_instance.read(0x65, &mut buf, BLOCK).unwrap();
-```
-This example demonstrates how to receive a single byte from the I2C slave device at address `0x65`. The received byte is stored in the `buf` array, and the operation blocks until the data is received or the timeout is reached.
-
-Configuring UART and I2C on the ESP32-C3 involves initializing the necessary peripherals, creating and configuring driver instances with appropriate settings, and utilizing provided methods to handle data transmission and reception. For UART, this includes setting parameters like baud rate, data bits, parity, and stop bits, and managing transmit and receive operations using the `write` and `read` methods. For I2C, configuration involves setting the baud rate, enabling pull-ups, and handling communication with slave devices through `write` and `read` methods that require specifying slave addresses and managing timeouts. By following the provided steps and utilizing the code examples, developers can effectively implement robust serial communication in their embedded applications.
 
 # Serial Communication (no-std)
 
@@ -1333,317 +866,11 @@ In this example:
 1. Buffer Initialization: A mutable buffer `buf` is created to store the received byte.
 2. Read Operation: The `read` method is called on the I2C instance, attempting to read one byte from the I2C slave device at address `0x65` into the buffer. The `unwrap()` method is used to handle any potential errors, assuming successful data reception.
 
-# IoT & Networking Services (std)
 
-ESP devices have gained popularity for their robust connectivity and Internet of Things (IoT) capabilities, supported by both software and hardware innovations. In the Rust programming environment, the `esp-idf-svc` and `embedded-svc` crates provide comprehensive support for a wide range of networking services, including WiFi, Ethernet, HTTP client & server, MQTT, WebSockets (WS), Network Time Protocol (NTP), and Over-The-Air (OTA) updates. Establishing network access is a fundamental step for any IoT service, with WiFi being a common protocol used for this purpose. This section introduces the basics of programming WiFi, focusing on establishing a simple connection rather than delving into intricate configuration details, to maintain clarity and avoid code verbosity.
 
-### WiFi
-WiFi, short for Wireless Fidelity, enables wireless connections between devices within a local network using radio waves. Devices can function as either clients or access points, with access points acting as central hubs connected to wired networks to extend wireless connectivity. WiFi operates primarily in the 2.4 GHz and 5 GHz frequency bands. The 2.4 GHz band offers wider coverage and better obstacle penetration but is more prone to congestion. In contrast, the 5 GHz band provides faster data rates and more reliable connections in crowded environments, albeit with a shorter range and reduced penetration capabilities. Security in WiFi networks is maintained through encryption protocols like WPA2 and WPA3, ensuring data privacy and preventing unauthorized access. Once connected, devices can communicate seamlessly and access network resources without the limitations of physical cables.
-The ESP32-C3 microcontroller is equipped with advanced WiFi functionalities, offering four virtual interfaces: Station (STA), Access Point (AP), Sniffer, and a reserved interface. It supports multiple operational modes, including Station-only, AP-only, and coexistence modes, adhering to IEEE 802.11 b/g/n standards. Security features include support for WPA2 and WPA3 protocols. Additionally, the ESP32-C3 uniquely incorporates the ESP-NOW protocol and a Long Range mode, enabling extended data transmission distances of up to 1 kilometer. These capabilities make the ESP32-C3 a versatile choice for a wide range of IoT applications requiring reliable and secure wireless communication.
 
-### Configuring WiFi
 
-This section outlines the process of configuring WiFi for ESP devices using Rust. It emphasizes the importance of establishing network access as a foundational step for any IoT service, with WiFi being a primary protocol for connectivity. The focus is on creating a basic WiFi connection without delving into complex configuration details to maintain simplicity and avoid excessive code complexity. The section also highlights the use of the `esp-idf-svc` and `embedded-svc` crates for managing various networking services.
 
-### The AnyHow Crate
-
-The AnyHow crate is introduced as a solution to improve error handling in Rust applications for ESP devices. Traditionally, the `unwrap` method was used to extract values from `Result` types, which can lead to panics if an error occurs. The AnyHow crate integrates ESP-IDF error codes, providing more informative error messages and better context for debugging. To use AnyHow, developers need to declare it as a dependency, import it, change the main function's return type to `anyhow::Result`, and replace `unwrap` calls with the `?` operator. This approach enhances the robustness and maintainability of the code, especially in wireless implementations.
-
-### Take the Peripherals
-
-The first step in configuring WiFi involves taking control of the device's peripherals. This is done using the Peripherals::take().unwrap() method, which initializes the necessary hardware components required for WiFi functionality. This step is consistent with earlier sections of the documentation, ensuring that the peripherals are properly initialized before proceeding to create and configure the WiFi driver instance.
-
-### Create a WiFi Driver Instance
-
-Creating a WiFi driver instance involves using the `esp-idf-svc` crate, which offers multiple structures such as `EspWifi` and `WifiDriver`. The `EspWifi` struct provides a higher-level abstraction, simplifying the creation of networking examples by encapsulating a `WifiDriver`. To instantiate `EspWifi`, developers use the `new` method, which requires a WiFi peripheral instance, a system event loop, and an optional non-volatile storage (NVS) partition. This setup follows a singleton pattern, ensuring that only one instance of each component is created.
-
-### Configure the WiFi Driver Instance
-
-Once the WiFi driver instance is created, it needs to be configured to operate either in station mode or access point mode. Station mode allows the device to connect to an existing WiFi network as a client, while access point mode enables the device to act as a hotspot for other clients to connect. The `set_configuration` method of `EspWifi` is used to apply the desired configuration by passing a `Configuration` enum. For example, configuring the device as a client involves specifying the SSID, password, and authentication method. This step is crucial for establishing the desired network behavior of the ESP device.
-
-### Interacting with WiFi
-
-Interacting with the WiFi subsystem involves managing connections and monitoring the status of the network interface. The ESP-IDF framework supports both blocking and non-blocking operations, with the example focusing on a blocking approach for simplicity. By wrapping the `EspWifi` instance with a `BlockingWifi` abstraction, developers can perform operations such as starting the WiFi, connecting to a network, and waiting for the network interface to become active. Additionally, the framework provides methods like `is_connected` and `get_configuration` to check the connection status and retrieve current network settings, respectively.
-
-### Connecting to WiFi
-
-Connecting to a WiFi network involves a sequence of method calls on the `BlockingWifi` instance. First, the `start` method initializes the WiFi peripheral. Next, the `connect` method attempts to establish a connection to the specified network using the previously set configuration. Finally, the `wait_netif_up` method blocks the execution until the network interface is fully up and running. Each of these methods returns a `Result`, ensuring that any issues during the connection process are appropriately handled and propagated.
-
-### Reading WiFi Status
-
-Monitoring the WiFi status is essential for ensuring a stable and reliable network connection. The `EspWifi` struct provides methods such as `is_connected` to check if the device is currently connected to a WiFi network and `get_configuration` to retrieve the current network settings. These methods return results that can be used to verify the connection status and debug any issues related to network configuration. While `EspWifi` offers a wide range of methods for controlling and monitoring the WiFi instance, this section focuses on the essential functions necessary for achieving and maintaining network connectivity.
-
-### HTTP Client
-
-HTTP (Hypertext Transfer Protocol) is the cornerstone of internet communication, operating on a client-server model that enables data exchange between web browsers and servers. When a user enters a website URL, the browser initiates an HTTP request—commonly a GET request—to the server hosting the desired website. This request specifies actions such as fetching a webpage or submitting data and utilizes methods like GET, POST, PUT, and DELETE to define its purpose. HTTP relies on the TCP protocol for data transmission and includes headers that provide additional information about the request and response. Upon receiving a request, the server processes it and responds with a status code (e.g., 200 for success, 404 for not found) and the requested data. HTTP is inherently stateless, treating each request independently, which can make data vulnerable to interception. To enhance security, HTTPS encrypts the data transmitted between clients and servers, ensuring secure communication. A typical GET request workflow involves establishing a TCP connection, sending the GET request with necessary headers, the server processing and responding with the appropriate status code and data, the client rendering the response, and finally closing the connection. Understanding HTTP client interactions is essential for developing robust and secure IoT applications that communicate effectively over the internet.
-
-### Configuring an HTTP Client
-
-Configuring an HTTP client for ESP devices using Rust involves a systematic approach that ensures secure and efficient communication over the internet. This process leverages the `esp-idf-svc` crate, which provides essential abstractions for handling HTTP client functionalities within the ESP-IDF framework. The configuration process is divided into several key steps, each building upon the previous to establish a robust HTTP client setup.
-
-#### Take the Peripherals
-
-The initial step in configuring an HTTP client mirrors the process used in setting up WiFi. It involves taking control of the device's peripherals using the `Peripherals::take().unwrap()` method. This ensures that all necessary hardware components are properly initialized and ready for subsequent configuration steps. By securing access to the peripherals, the device can effectively manage networking tasks required for HTTP communication.
-
-```rust
-let peripherals = Peripherals::take().unwrap();
-```
-
-#### Connect to WiFi
-
-Before establishing an HTTP connection, the device must be connected to a WiFi network. This step is identical to the WiFi configuration process outlined earlier, where the device is set up either as a station or an access point. Successfully connecting to WiFi provides the necessary network access for the HTTP client to send and receive data over the internet.
-
-```rust
-let sysloop = EspSystemEventLoop::take()?;
-let nvs = EspDefaultNvsPartition::take()?;
-let wifi = EspWifi::new(peripherals.modem, sysloop, Some(nvs))?;
-wifi.set_configuration(&Configuration::Client(ClientConfiguration {
-    ssid: "SSID".try_into().unwrap(),
-    password: "PASSWORD".try_into().unwrap(),
-    auth_method: AuthMethod::None,
-    ..Default::default()
-}))?;
-wifi.start()?;
-wifi.connect()?;
-wifi.wait_netif_up()?;
-```
-
-#### Configure an HTTP Connection
-
-Configuring an HTTP connection involves creating an instance of `EspHttpConnection` from the `esp_idf_svc::http::client` module. This abstraction requires a reference to a `http::client::Configuration` struct during instantiation. The configuration typically sets essential parameters such as use_global_ca_store and crt_bundle_attach to enable secure HTTPS connections. These settings ensure that the HTTP client uses a global certificate authority store and attaches the necessary certificate bundle for encryption, which is crucial for secure data transmission.
-
-```rust
-let httpconnection = EspHttpConnection::new(&Configuration {
-    use_global_ca_store: true,
-    crt_bundle_attach: Some(esp_idf_sys::esp_crt_bundle_attach),
-    ..Default::default()
-})?;
-```
-
-### Interacting with HTTP
-
-Once the HTTP client is configured, interacting with it involves initiating requests, handling responses, and processing the received data. The `EspHttpConnection` abstraction provides methods to manage these interactions seamlessly.
-
-#### Initiating Requests & Responses
-
-To initiate an HTTP request, the `initiate_request` method of `EspHttpConnection` is used. This method requires specifying the request type (e.g., GET, POST), the target URL, and any headers that need to accompany the request. For example, initiating a GET request to "https://httpbin.org/get" can be done as follows:
-
-```rust
-let url = "https://httpbin.org/get";
-let _request = httpconnection.initiate_request(Method::Get, url, &[])?;
-```
-
-After sending the request, the `initiate_response` method is called to handle the incoming response from the server. This structured approach ensures that requests and responses are managed effectively.
-
-```rust
-httpconnection.initiate_response()?;
-```
-
-#### Processing HTTP Responses
-
-Handling the server's response involves retrieving and interpreting various components of the HTTP response. The `EspHttpConnection` provides several methods for this purpose:
-
-- `status`: Retrieves the HTTP status code (e.g., 200 for success).
-- `status_message`: Provides the corresponding status message.
-- `header`: Allows retrieval of specific headers from the response.
-
-For instance, to check if the request was successful and to retrieve a specific header:
-
-```rust
-let status_code = httpconnection.status();
-let status_msg = httpconnection.status_message();
-if let Some(content_type) = httpconnection.header("Content-Type") {
-    // Process the Content-Type header
-}
-```
-
-These methods return results that help verify the success of the request and access any additional information provided by the server. While comprehensive response handling, such as reading and parsing the response body, requires additional code, these methods offer essential tools for managing basic HTTP interactions and ensuring reliable network communication.
-
-### HTTP Server Overview
-
-An HTTP server is a fundamental component in web architecture, responsible for handling client requests and serving the appropriate resources. Unlike client-side interactions where the client initiates communication, the server operates continuously, listening for incoming connections and responding to requests such as fetching HTML pages or other resources. When a client, like a web browser, requests a webpage, the server processes the request, retrieves the necessary resources, and sends back an HTTP response containing the requested data and a status code indicating the result of the request (e.g., `200 OK` for success or `404 Not Found` if the resource is unavailable). Understanding the server-side request handling process is essential for developing robust web applications and IoT solutions that require reliable communication between devices and servers.
-
-### Configuring an HTTP Server
-
-Configuring an HTTP server on ESP devices using Rust involves several key steps to ensure that the server can handle client requests effectively. This process leverages the `esp-idf-svc` crate, which provides abstractions for managing HTTP server functionalities within the ESP-IDF framework. The configuration process is methodical, starting from initializing peripherals to defining response behaviors for different HTTP methods and endpoints.
-
-#### Take the Peripherals
-
-The first step in setting up an HTTP server is to take control of the device's peripherals. This is achieved using the `Peripherals::take().unwrap()` method, which initializes the necessary hardware components required for networking and server operations. Ensuring that peripherals are properly initialized is crucial for the subsequent configuration steps and for the reliable functioning of the HTTP server.
-
-```rust
-let peripherals = Peripherals::take().unwrap();
-```
-
-#### Connect to WiFi
-
-Before the HTTP server can handle incoming requests, the device must be connected to a WiFi network. This step is identical to the WiFi configuration process previously outlined, where the device is set up either as a station or an access point. Successfully connecting to WiFi provides the server with the necessary network access to listen for and respond to client requests.
-
-```rust
-let sysloop = EspSystemEventLoop::take()?;
-let nvs = EspDefaultNvsPartition::take()?;
-let wifi = EspWifi::new(peripherals.modem, sysloop, Some(nvs))?;
-wifi.set_configuration(&Configuration::Client(ClientConfiguration {
-    ssid: "SSID".try_into().unwrap(),
-    password: "PASSWORD".try_into().unwrap(),
-    auth_method: AuthMethod::None,
-    ..Default::default()
-}))?;
-wifi.start()?;
-wifi.connect()?;
-wifi.wait_netif_up()?;
-```
-
-#### Create and Configure an HTTP Server Instance
-
-Creating and configuring an HTTP server involves instantiating the `EspHttpServer` abstraction from the `esp_idf_svc::http::server` module. This is done using the `new` method, which takes a reference to a `http::server::Configuration` struct. The default configuration is typically sufficient for basic server operations, but it can be customized as needed based on specific networking or protocol requirements.
-
-```rust
-// Create Server Connection Handle
-let httpserver = EspHttpServer::new(&Configuration::default())?;
-```
-
-### Interacting with an HTTP Server
-
-Once the HTTP server is configured and running, it needs to handle incoming requests and respond appropriately. This involves defining response behaviors for different HTTP methods and endpoints using the `fn_handler` method provided by the `EspHttpServer` abstraction.
-
-#### Defining Response Behavior
-
-The `fn_handler` method allows developers to register handler functions that define how the server should respond to specific requests. Each handler is associated with a particular URL and HTTP method. For example, to handle GET requests to the root URL (`"/"`), a handler can be defined as follows:
-
-```rust
-// Define Server RequestHandler Behavior for GET on Root URL
-httpserver.fn_handler("/", Method::Get, |request| {
-    // Retrieve HTML String
-    let html = index_html();
-    
-    // Respond with OK status
-    let mut response = request.into_ok_response()?;
-    
-    // Return Requested Object (IndexPage)
-    response.write(html.as_bytes())?;
-    
-    Ok::<(), anyhow::Error>(())
-})?;
-```
-
-In this example:
-
-1. Define Handler: The handler is registered for the root URL (`"/"`) and the GET method.
-2. Retrieve Content: The `index_html()` function generates or retrieves the HTML content to be served.
-3. Create Response: The `into_ok_response()` method creates an HTTP response with a `200 OK` status.
-4. Write Content: The HTML content is written to the response body.
-5. Finalize: The handler completes successfully, allowing the server to send the response to the client.
-
-### SNTP Overview
-
-SNTP, or Simple Network Time Protocol, is a protocol designed to synchronize the clocks of devices over a network. It ensures that devices such as computers, routers, and servers maintain accurate and consistent time references by communicating with dedicated time servers. Unlike its more complex counterpart, NTP (Network Time Protocol), SNTP offers a lightweight solution suitable for most basic time synchronization needs where high precision is not critical.
-
-### How SNTP Works
-
-SNTP operates through a straightforward four-step process to maintain accurate time across devices:
-
-1. Requesting the Time: A device, such as an ESP microcontroller, sends a request to a network time server to obtain the current time.
-2. Time Server Responds: The time server receives the request and replies with the current time, typically precise to the millisecond.
-3. Adjusting the Clock: The device receives the time data from the server and adjusts its internal clock to match the received time, ensuring consistency across the network.
-4. Regular Updates: To maintain accuracy, SNTP can be configured to periodically send time synchronization requests at regular intervals, allowing devices to correct any drift in their internal clocks.
-
-### Key Features of SNTP
-
-- Simplicity: SNTP is a simplified version of NTP, making it easier to implement for devices that do not require the advanced features and high precision offered by NTP.
-- Lightweight Protocol: Operating over UDP (User Datagram Protocol), SNTP benefits from a connectionless and low-overhead communication method, which is ideal for sending small packets of data with minimal delay.
-- Reliability: By relying on Coordinated Universal Time (UTC), SNTP provides a standardized and accurate time reference that ensures all synchronized devices operate on the same time basis.
-
-### Why Use SNTP
-
-SNTP is particularly advantageous in scenarios where:
-
-- Resource Constraints: Devices with limited processing power and memory, such as microcontrollers in IoT applications, can efficiently handle SNTP without the complexity of full NTP implementations.
-- Basic Synchronization Needs: Applications that require consistent timekeeping without the necessity for millisecond-level precision benefit from the simplicity and efficiency of SNTP.
-- Network Efficiency: The use of UDP allows for faster communication with lower overhead, making SNTP suitable for networks where bandwidth and latency are critical factors.
-
-Coordinated Universal Time (UTC) serves as the global time standard for SNTP. By synchronizing to UTC, SNTP ensures that all devices across different regions and networks adhere to a uniform time reference. This uniformity is essential for applications that rely on accurate timestamps, logging, and coordinated operations across multiple devices.
-
-### Configuring an SNTP Instance
-
-Configuring SNTP on ESP devices using Rust involves creating and setting up an SNTP client instance. This process leverages the `esp-idf-svc` crate, which provides the `EspSntp` abstraction for managing SNTP functionalities within the ESP-IDF framework.
-
-#### Take the Peripherals
-
-The initial step involves taking control of the device's peripherals to ensure that all necessary hardware components are initialized and ready for network operations.
-
-```rust
-let peripherals = Peripherals::take().unwrap();
-```
-
-#### Connect to WiFi
-
-Before the device can synchronize its time, it must be connected to a WiFi network. This step is identical to the WiFi configuration process outlined earlier.
-
-```rust
-let sysloop = EspSystemEventLoop::take()?;
-let nvs = EspDefaultNvsPartition::take()?;
-let wifi = EspWifi::new(peripherals.modem, sysloop, Some(nvs))?;
-wifi.set_configuration(&Configuration::Client(ClientConfiguration {
-    ssid: "SSID".try_into().unwrap(),
-    password: "PASSWORD".try_into().unwrap(),
-    auth_method: AuthMethod::None,
-    ..Default::default()
-}))?;
-wifi.start()?;
-wifi.connect()?;
-wifi.wait_netif_up()?;
-```
-
-#### Create and Configure an SNTP Instance
-
-Instantiating and configuring SNTP is straightforward, especially with the default configuration. The `EspSntp::new_default()` method initializes an SNTP client with default settings. Custom configurations are also possible, allowing the selection of different SNTP servers, operating modes, or synchronization modes as needed.
-
-```rust
-let ntp = EspSntp::new_default().unwrap();
-```
-
-```rust
-let ntp = EspSntp::new_default().unwrap();
-```
-
-### Interacting with SNTP
-
-Once the SNTP instance is created and configured, the device can interact with it to manage time synchronization.
-
-#### Synchronizing Time
-
-The `EspSntp` abstraction provides the `get_sync_status` method to check the synchronization status with the NTP server. This method returns a `SyncStatus` enum, indicating whether the synchronization process is completed or still in progress.
-
-```rust
-pub enum SyncStatus {
-    Reset,
-    // Other variants...
-}
-```
-
-To ensure that the system time has been synchronized, the following loop can be used:
-
-```rust
-while ntp.get_sync_status() != SyncStatus::Completed {
-    // Wait or perform other tasks
-}
-```
-
-```rust
-while ntp.get_sync_status() != SyncStatus::Completed {
-    // Wait or perform other tasks
-}
-```
-
-Once synchronization is completed, the device's system time can be retrieved using Rust's standard library:
-
-```rust
-use std::time::SystemTime;
-
-let current_time = SystemTime::now();
-println!("Synchronized System Time: {:?}", current_time);
-```
 
 # The Embassy Framework (no-std)
 
@@ -2356,3 +1583,22 @@ blinky
 led-bar-blink
 button-press-counter
 
+sample-voltmeter
+temperature-sensing (optional)
+
+real-time-timer
+
+led-fading
+
+uart-xor-cipher
+l2c-real-time-clock (optional)
+
+connecting-to-wifi
+simple-http-client
+simple-http-server
+synchronizing-system-time
+
+// tworzenie projektu
+// przygotowanie środowiska
+// debug
+// flushing
