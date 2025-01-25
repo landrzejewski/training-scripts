@@ -1,3 +1,9 @@
+---
+title: "Modern Java"
+author: "Łukasz Andrzejewski"
+date: "January 25, 2025"
+---
+
 # Key Milestones in Java and Why Java Continues to Evolve
 
 Java has long been a mainstay in software development, evolving steadily from its inception to the modern, robust language it is today. In this article, we explore the major milestones in Java’s evolution—from the early days of Java 1.0 up to the most recent Java 21 release. We examine the transformative features and design philosophies that have guided its evolution, with practical code examples to demonstrate how these innovations translate into everyday programming.

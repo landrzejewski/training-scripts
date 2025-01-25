@@ -1,0 +1,77 @@
+\documentclass[10pt]{book}
+
+% LuaLaTeX: Use fontspec for full Unicode
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX, Scale=MatchLowercase}
+\setmainfont{Fira Sans}
+\setmonofont{DejaVu Sans Mono}
+
+% Page geometry
+\usepackage{geometry}
+\geometry{margin=1in}
+
+% Fancyhdr for custom header/footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+% Make chapter pages match:
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+% Hyperref with hidden link boxes
+\usepackage[hidelinks]{hyperref}
+
+% Packages for code highlighting
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{framed}
+
+% Add necessary packages
+\usepackage{array}      % For advanced table column definitions
+\usepackage{longtable}  % For long tables that span multiple pages
+\usepackage{calc}       % For arithmetic in length specifications
+\usepackage{booktabs}   % For professional-quality tables
+
+% Pandoc's syntax highlighting macros
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+
+% Define \tightlist if needed by Pandoc
+\ifdefined\tightlist
+  \let\tightlist\relax
+\fi
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+}
+
+% Title, author, date from Pandoc
+\title{$title$}
+\author{$author$}
+\date{$date$}
+
+\begin{document}
+
+\maketitle
+
+\frontmatter
+
+$if(toc)${
+  \tableofcontents
+  \clearpage
+}$endif$
+
+\mainmatter
+
+$body$
+
+\backmatter
+
+\end{document}
