@@ -314,6 +314,68 @@ pin.set_low().unwrap();  // set pin to low
 pin.set_high().unwrap(); // set pin to high
 ```
 
+### Bare-metal version
+
+```rust
+let peripherals = esp_hal::init(esp_hal::Config::default());
+let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+let pin = Input::new(io.pins.gpio3, Pull::Up);
+pin.set_low();
+let other_pin = Output::new(io.pins.gpio3, Level::Low);
+other_pin.set_drive_strength(DriveStrength::I5mA);
+
+loop {
+    if pin.is_low() {
+        println!("Low!");
+    }
+    if pin.is_high() {
+        println!("High!");
+    }
+}
+
+
+
+// Interrupts
+
+#![no_std]
+#![no_main]
+
+use core::cell::{Cell, RefCell};
+use critical_section::Mutex;
+use esp_backtrace as _;
+use esp_hal::{
+    gpio::{Event, Input, Pull, Io},
+    prelude::*,
+};
+use esp_println::println;
+
+static G_PIN: Mutex<RefCell<Option<Input>>> = Mutex::new(RefCell::new(None));
+
+
+
+#[handler]
+fn gpio() {
+    critical_section::with(|cs| {
+        // Obtain access to global pin and clear interrupt pending flag
+        G_PIN.borrow_ref_mut(cs).as_mut().unwrap().clear_interrupt();
+    });
+}
+
+#[entry]
+fn main() -> ! {
+    let peripherals = esp_hal::init(esp_hal::Config::default());
+    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+
+    io.set_interrupt_handler(gpio);
+    let some_pin = Input::new(io.pins.gpio0, Pull::Up);
+    some_pin.listen(Event::FallingEdge);
+    critical_section::with(|cs| G_PIN.borrow_ref_mut(cs).replace(some_pin));
+    loop {
+      // do the work
+    }
+}
+```
+
 ## ADCs
 
 The physical world operates on analog principles, with parameters like temperature, pressure, and speed existing as continuous values. This analog nature creates a gap when interfacing with digital systems such as microcontrollers and microprocessors, which rely on discrete digital values. To bridge this gap, embedded systems must measure these analog parameters and respond accordingly. Analog-to-Digital Converters (ADCs) play a crucial role by converting analog voltages into digital values, enabling digital systems to process real-world physical data effectively.
@@ -384,6 +446,35 @@ let mut channel = AdcChannelDriver::new(&adc1, peripherals.pins.gpio4, &config)
 let sample: u16 = channel.read_raw().unwrap();
 ```
 
+
+### Bare-metal version
+
+```rust
+let peripherals = esp_hal::init(esp_hal::Config::default());
+let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+
+// Create instance for ADC configuration parameters
+
+let mut adc_config = AdcConfig::new();
+
+// Enable a pin with attenuation
+
+let mut adc_pin = adc_config.enable_pin(
+    pin_instance,
+    Attenuation::Attenuation11dB,
+);
+
+
+
+// Create ADC driver for ADC1
+
+let mut adc1 = Adc::new(peripherals.ADC1, adc_config);
+
+// Blocking read of input
+
+let adc_reading: u16 = nb::block!(adc1.read_oneshot(&mut pin)).unwrap();
+```
+
 ## Timers & Counters
 
 Timers and counters are fundamental peripherals in embedded systems, offering powerful functionalities despite their simplicity. A timer generates periodic or one-time signals at specified intervals and can measure the time between external hardware events. Common applications include triggering interrupts for updating displays, measuring button press durations, or creating delays. Conversely, a counter increments its count with each event occurrence, useful for tracking the number of button presses, motor revolutions, or network packets received. While timers and counters can be implemented in software, hardware implementations are preferred for maintaining high accuracy and efficiency. Most microcontrollers, including the ESP32-C3, come equipped with multiple dedicated timers and counters, each offering various features tailored to specific tasks.
@@ -445,6 +536,7 @@ timer.enable(true).unwrap();
 
 let timer_clk = 1_000_000_u64; // 1 MHz clock
 
+
 // Enable timer
 
 some_timer.enable(true).unwrap();
@@ -488,9 +580,76 @@ fn main() -> ! {
     some_timer.enable_interrupt().unwrap();
     // Enable timer to start counting
     some_timer.enable(true).unwrap();
-    // Following application code
+
     loop {
         // Main application logic
+    }
+}
+```
+
+### Bare-metal version
+
+```rust
+// Create a global variable for timer to pass between threads
+
+static G_TIMER: Mutex<RefCell<Option<Timer<Timer0<TIMG0>, esp_hal::Blocking>>>>
+    = Mutex::new(RefCell::new(None));
+
+#[handler]
+fn tg0_t0_level() {
+    critical_section::with(|cs| {
+        // Clear timer interrupt pending flag
+        G_TIMER
+            .borrow_ref_mut(cs)
+            .as_mut()
+            .unwrap()
+            .clear_interrupt();
+        // Re-activate Timer alarm for interrupts to occur again
+        G_TIMER
+            .borrow_ref_mut(cs)
+            .as_mut()
+            .unwrap()
+            .set_alarm_active(true);
+    });
+}
+
+#[entry]
+fn main() -> ! {
+    let peripherals = esp_hal::init(esp_hal::Config::default());
+
+    // Instantiate TimerGroup0
+    let timer_group0 = TimerGroup::new(peripherals.TIMG0);
+
+    // Instantiate Timer0 in timer group0
+    let timer0 = timer_group0.timer0;
+
+
+
+
+    // Configure timer to trigger an interrupt every second
+    // Load count equivalent to 1 second
+    timer0
+        .load_value(MicrosDurationU64::micros(1_000_000))
+        .unwrap();
+    // Enable alarm to generate interrupts
+    timer0.set_alarm_active(true);
+    // Activate counter
+    timer0.set_counter_active(true);
+    // Attach interrupt and start listening for timer events
+    timer0.set_interrupt_handler(tg0_t0_level);
+    timer0.listen();
+    // Move the timer to the global context
+    critical_section::with(|cs| {
+        G_TIMER.borrow_ref_mut(cs).replace(timer0)
+    });
+    
+    loop {
+        // Reset Timer count (to count from 0)
+        timer0.reset();
+        // Perform Some Operations
+        // Determine Duration
+        let dur = some_timer.now().duration_since_epoch().to_secs();
+        println!("Elapsed Timer Duration in Seconds is {}", dur);
     }
 }
 ```
@@ -554,6 +713,31 @@ driver.enable().unwrap();
 
 ```
 
+### Bare-metal version
+
+```rust
+let peripherals = esp_hal::init(esp_hal::Config::default());
+let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+let some_output_pin = Output::new(io.pins.gpio3, Level::Low);
+let mut ledc = Ledc::new(peripherals.LEDC);
+ledc.set_global_slow_clock(LSGlobalClkSource::APBClk);
+let ledctimer = ledc.get_timer::<LowSpeed>(ledc::timer::Number::Timer0);
+ledctimer.configure(timer::config::Config {
+    duty: timer::config::Duty::Duty12Bit,
+        clock_source: timer::LSClockSource::APBClk,
+        frequency: 4u32.kHz(),
+    })
+    .unwrap();
+let mut channel = ledc.get_channel(channel::Number::Channel0, some_output_pin);
+let mut channel0 = ledc.get_channel(channel::Number::Channel0, led);
+channel0.configure(channel::config::Config {
+    timer: &ledctimer,
+        duty_pct: 10,
+        pin_config: channel::config::PinConfig::PushPull,
+    })
+    .unwrap();
+```
+
 ## Serial communication
 
 Serial communication is a method of transmitting data sequentially over a single wire or a pair of wires, sending one bit at a time. This contrasts with parallel communication, where multiple bits are transmitted simultaneously across multiple channels. Serial communication is favored in embedded systems, microcontrollers, and various electronic devices due to its simplicity, reliability, and efficiency. The two primary modes of serial communication are I2C (Inter-Integrated Circuit) and SPI (Serial Peripheral Interface), each with its own advantages. I2C is a synchronous protocol designed for communication between microcontrollers and peripheral devices, offering a smaller footprint but lower bandwidth compared to SPI. SPI, also synchronous, is commonly used for short-distance communication between microcontrollers and peripherals, providing higher speed and bandwidth.
@@ -609,6 +793,7 @@ let uart = UartDriver::new(
     &config,
 ).unwrap();
 
+
 // Sending a single byte over UART
 
 uart.write(&[25_u8]).unwrap();
@@ -644,6 +829,52 @@ let mut buf = [0_u8; 1];
 i2c_driver.read(0x65, &mut buf, BLOCK).unwrap();
 ```
 
+### Bare-metal version
+
+```rust
+let peripherals = esp_hal::init(esp_hal::Config::default());
+let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+
+let uart_tx = Output::new(io.pins.gpio21, Level::Low);
+
+let uart_rx = Input::new(io.pins.gpio20, Pull::Up);
+
+let uart_config = Config {
+    baudrate: 115200,
+    data_bits: DataBits::DataBits8,
+    parity: Parity::ParityNone,
+    stop_bits: StopBits::STOP1,
+    clock_source: ClockSource::Apb,
+    ..Default::default()
+};
+
+let mut uart = Uart::new_with_config(
+    peripherals.UART0,
+    uart_config,
+    io.pins.gpio21,
+    io.pins.gpio20,
+)
+.unwrap();
+
+uart.write_bytes(&[25_u8]).unwrap();
+
+let mut buf = [0_u8; 1];
+uart.read(&mut buf).unwrap();
+
+
+let i2c = I2c::new(
+    peripherals.I2C0,
+    io.pins.gpio1,
+    io.pins.gpio2,
+    100u32.kHz(),
+);
+
+i2c.write(0x65, &[25]).unwrap();
+
+let mut buf = [0_u8; 1];
+i2c.read(0x65, &mut buf).unwrap();
+```
+
 ## Networking
 
 ESP devices have gained popularity for their robust connectivity and Internet of Things (IoT) capabilities, supported by both software and hardware innovations. In the Rust programming environment, the `esp-idf-svc` and `embedded-svc` crates provide comprehensive support for a wide range of networking services, including WiFi, Ethernet, HTTP client & server, MQTT, WebSockets (WS), Network Time Protocol (NTP), and Over-The-Air (OTA) updates. Establishing network access is a fundamental step for any IoT service, with WiFi being a common protocol used for this purpose. This section introduces the basics of programming WiFi, focusing on establishing a simple connection rather than delving into intricate configuration details, to maintain clarity and avoid code verbosity.
@@ -652,7 +883,6 @@ ESP devices have gained popularity for their robust connectivity and Internet of
 
 ```rust
 let peripherals = Peripherals::take().unwrap();
-
 
 // Connect to WiFi
 
@@ -688,6 +918,8 @@ let status_msg = httpconnection.status_message();
 if let Some(content_type) = httpconnection.header("Content-Type") {
     // Process the Content-Type header
 }
+
+
 
 // Create and configure an HTTP server
 
