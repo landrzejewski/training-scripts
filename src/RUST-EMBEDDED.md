@@ -993,7 +993,7 @@ In other words:
 - No guarantees are made about memory visibility or ordering relative to other memory operations.
 - Other threads may not immediately see the updated value.
 
-3. **What is CTS and RTS in UART Communication**
+3. **What is CTS and RTS in UART Communication?**
 In the context of UART (Universal Asynchronous Receiver-Transmitter) communication, CTS (Clear to Send) and RTS (Request to Send) are hardware flow control signals.
 CTS (Clear to Send) is an input signal for a device. It indicates whether the device is ready to receive data. 
 When low (0), the device is not ready to receive data. When high (1), the device is ready to receive data.
@@ -1009,3 +1009,12 @@ CTS and RTS are used for hardware flow control, preventing data loss in UART com
 4. **What is BCD?**
 A Binary-Coded Decimal is a representation of decimal numbers where each digit is stored as a separate 4-bit binary value.
 Example: Decimal 25 in BCD: 2 → 0010, 5 → 0101 so, 25 in BCD is 0010 0101 (0x25 in hexadecimal).
+
+5. **What is the meaning of macros used in the bare-metal variants?**
+- ```#![no_std]``` - Removes the Rust standard library (std). Embedded systems often lack an OS or runtime that provides 
+standard library features (such as heap allocation, threads, and file I/O). Instead, Rust provides a minimal 
+subset called the core library, which includes essential functionalities like primitives, iterators, and basic math.
+- ```#![no_main]``` - Disables the default Rust entry point (fn main()). The standard Rust main() function relies on an 
+OS-provided runtime, which is not available in a bare-metal context. Instead, the developer must define a custom 
+entry point using other attributes (like #[entry] from cortex-m-rt or #[main] in other frameworks).
+- ```#[main]``` - It is marking the main function as the entry point.
