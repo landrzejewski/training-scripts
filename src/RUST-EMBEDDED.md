@@ -970,3 +970,42 @@ cat $HOME/export-esp.sh >> [path to profile]
 cargo generate esp-rs/esp-idf-template cargo
 cargo build
 ```
+
+# Common questions
+
+1. **Why is ```sys::link_patches()``` added at the main method level?**
+In embedded Rust, when working with bindings to C libraries (such as when using `bindgen` to generate Rust bindings for C code), you might come across `sys::link_patches()` in your code. This function is often needed for the following reasons:
+
+- Forcing linker to include symbols: Some embedded C libraries use weak symbols or link-time optimizations that may cause unused functions or variables to be discarded by the linker. 
+  Calling `sys::link_patches()` ensures that those symbols are referenced, preventing them from being removed.
+- Ensuring correct initialization: In some cases, C libraries require certain initialization routines to be linked in, even if they are not directly used in Rust. 
+  Calling `sys::link_patches()` forces the inclusion of these routines.
+- Overcoming dead code elimination: The Rust compiler aggressively removes unused code (LLVM optimizations).
+  If your embedded system relies on certain weakly linked symbols, this function helps keep them included.
+- Platform-specific fixes: Some embedded platforms might require linking patches to ensure compatibility between Rust and C functions.
+
+2. **What does the ```Ordering::Relaxed``` parameter mean when used with atomic types?**
+In Rust, when working with atomic types (`AtomicUsize`, `AtomicBool`, etc.), you often need to specify an ordering constraint to control how operations are synchronized across multiple threads.
+`Ordering::Relaxed` is one such ordering constraint. Using `Ordering::Relaxed` means that the operation is atomic but does not impose any synchronization guarantees beyond ensuring the operation itself is not torn or reordered within the same thread.
+In other words:
+
+- The operation executes atomically (i.e., it completes as a single unit).
+- No guarantees are made about memory visibility or ordering relative to other memory operations.
+- Other threads may not immediately see the updated value.
+
+3. **What is CTS and RTS in UART Communication**
+In the context of UART (Universal Asynchronous Receiver-Transmitter) communication, CTS (Clear to Send) and RTS (Request to Send) are hardware flow control signals.
+CTS (Clear to Send) is an input signal for a device. It indicates whether the device is ready to receive data. 
+When low (0), the device is not ready to receive data. When high (1), the device is ready to receive data.
+RTS (Request to Send) is an output signal for a device. It indicates that the device wants to send data.
+The device sets RTS high (1) to tell the other device it is ready to transmit. The other device will then check CTS before sending data.
+CTS and RTS are used for hardware flow control, preventing data loss in UART communication:
+
+- Device A wants to send data to Device B → It checks CTS from Device B.
+- If CTS is high, Device A sends the data.
+- If CTS is low, Device A waits before sending data.
+- Device A controls RTS to signal when it wants to receive data.
+
+4. **What is BCD?**
+A Binary-Coded Decimal is a representation of decimal numbers where each digit is stored as a separate 4-bit binary value.
+Example: Decimal 25 in BCD: 2 → 0010, 5 → 0101 so, 25 in BCD is 0010 0101 (0x25 in hexadecimal).
