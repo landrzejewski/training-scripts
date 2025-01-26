@@ -940,3 +940,33 @@ while ntp.get_sync_status() != SyncStatus::Completed {
 let current_time = SystemTime::now();
 println!("Synchronized System Time: {:?}", current_time);
 ```
+
+# Setup
+
+## Environment 
+
+- Install Rust
+- Install Python
+- Install git
+- Install espup, toolchains and tools:
+
+```rust
+cargo install espup
+espup install
+cargo install ldproxy
+cargo install espflash
+cargo install cargo-generate
+```
+
+- Set up the environment variables
+
+```rust
+cat $HOME/export-esp.sh >> [path to profile]
+```
+
+## Creating and building project
+
+```rust
+cargo generate esp-rs/esp-idf-template cargo
+cargo build
+```
