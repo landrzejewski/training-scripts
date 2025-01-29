@@ -371,12 +371,11 @@ import java.util.Comparator;
 public class AnonymousClassExample {
     public static void main(String[] args) {
         List<String> names = Arrays.asList("Alice", "Bob", "Charlie", "David");
-
         // Sorting using an anonymous inner class
         Collections.sort(names, new Comparator<String>() {
             @Override
             public int compare(String a, String b) {
-                return b.compareTo(a); // Descending order
+                return b.compareTo(a);
             }
         });
 
@@ -405,9 +404,8 @@ import java.util.Collections;
 public class LambdaExample {
     public static void main(String[] args) {
         List<String> names = Arrays.asList("Alice", "Bob", "Charlie", "David");
-
         // Sorting using a lambda expression
-        Collections.sort(names, (a, b) -> b.compareTo(a)); // Descending order
+        Collections.sort(names, (a, b) -> b.compareTo(a));
 
         names.forEach(name -> System.out.println(name));
     }
@@ -495,11 +493,12 @@ public class StreamExample {
     public static void main(String[] args) {
         List<String> names = Arrays.asList("Alice", "Bob", "Charlie", "David", "Eve");
 
+        
         // Processing the stream
         names.stream()
              .filter(name -> name.compareTo("C") >= 0) // Filtering
-             .map(String::toUpperCase)                // Mapping to uppercase
-             .forEach(System.out::println);           // Consuming the stream
+             .map(String::toUpperCase)                 // Mapping to uppercase
+             .forEach(System.out::println);            // Consuming the stream
     }
 }
 ```
@@ -892,6 +891,7 @@ public class UserService {
         );
     }
 }
+
 
 class User {
     private String name;
@@ -1658,6 +1658,8 @@ public class Circle extends Shape {
     }
 }
 
+
+
 public class Square extends Shape {
     @Override
     public void draw() {
@@ -2110,7 +2112,6 @@ public class TraditionalSwitchExample {
     public static void main(String[] args) {
         String day = "MONDAY";
         String type;
-
         switch (day) {
             case "MONDAY":
             case "FRIDAY":
@@ -2128,7 +2129,6 @@ public class TraditionalSwitchExample {
                 type = "Invalid day";
                 break;
         }
-
         System.out.println(day + " is classified as: " + type);
     }
 }
@@ -2365,7 +2365,6 @@ With Pattern Matching for `switch`, developers can now use patterns to deconstru
 public class TraditionalSwitchExample {
     public static void main(String[] args) {
         Object obj = "Hello, Java 21!";
-
         String result;
         switch (obj.getClass().getSimpleName()) {
             case "String":
@@ -2380,7 +2379,6 @@ public class TraditionalSwitchExample {
                 result = "Unknown type";
                 break;
         }
-
         System.out.println(result);
     }
 }
@@ -2426,8 +2424,10 @@ public class ComplexPatternSwitchExample {
         Object shape = new Circle(new Point(5, 10), 15.0);
 
         String description = switch (shape) {
-            case Circle(Point x, double r) -> "Circle with center at (" + x.x() + ", " + x.y() + ") and radius " + r;
-            case Rectangle(Point tl, Point br) -> "Rectangle from (" + tl.x() + ", " + tl.y() + ") to (" + br.x() + ", " + br.y() + ")";
+            case Circle(Point x, double r) -> "Circle with center at (" + x.x() 
+                    + ", " + x.y() + ") and radius " + r;
+            case Rectangle(Point tl, Point br) -> "Rectangle from (" + tl.x() + ", " 
+                    + tl.y() + ") to (" + br.x() + ", " + br.y() + ")";
             default -> "Unknown shape";
         };
 
@@ -2519,7 +2519,6 @@ public class VirtualThreadServer {
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(8080);
         System.out.println("Server started on port 8080");
-
         while (true) {
             Socket clientSocket = serverSocket.accept();
             // Handle each client in a new virtual thread
@@ -2625,31 +2624,26 @@ public class TraditionalCollectionsExample {
         hashSet.add("Banana");
         hashSet.add("Cherry");
         hashSet.add("Date");
-
         System.out.println("HashSet:");
         for (String fruit : hashSet) {
             System.out.println(fruit);
         }
-
         // Using LinkedHashSet (Maintains insertion order)
         Set<String> linkedHashSet = new LinkedHashSet<>();
         linkedHashSet.add("Apple");
         linkedHashSet.add("Banana");
         linkedHashSet.add("Cherry");
         linkedHashSet.add("Date");
-
         System.out.println("\nLinkedHashSet:");
         for (String fruit : linkedHashSet) {
             System.out.println(fruit);
         }
-
         // Using TreeSet (Sorted order)
         Set<String> treeSet = new TreeSet<>();
         treeSet.add("Apple");
         treeSet.add("Banana");
         treeSet.add("Cherry");
         treeSet.add("Date");
-
         System.out.println("\nTreeSet:");
         for (String fruit : treeSet) {
             System.out.println(fruit);
