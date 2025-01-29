@@ -601,9 +601,11 @@ David
 
 Explanation of the Example:
 
-In the Anonymous Inner Class example, implementing the `Runnable` interface requires creating an anonymous class with an overridden `run` method. Additionally, within the `run` method, another anonymous class is used to implement the `Consumer<String>` interface for the `forEach` operation. This nested structure leads to increased verbosity and makes the code harder to read and maintain.
+Implementing the `Runnable` interface requires creating an anonymous class with an overridden `run` method. Additionally, within the `run` method, another anonymous class is used to implement the 
+`Consumer<String>` interface for the `forEach` operation. This nested structure leads to increased verbosity and makes the code harder to read and maintain.
 
-Conversely, the Functional Interface example leverages lambda expressions to implement both the `Runnable` and `Consumer<String>` interfaces succinctly. The lambda `() -> names.forEach(name -> System.out.println(name))` directly defines the behavior of the `run` method without the need for boilerplate code. This results in a more readable and maintainable implementation, showcasing the power and simplicity that Functional Interfaces bring to Java programming.
+The Functional Interface example leverages lambda expressions to implement both the `Runnable` and 
+`Consumer<String>` interfaces succinctly. The lambda `() -> names.forEach(name -> System.out.println(name))` directly defines the behavior of the `run` method without the need for boilerplate code. This results in a more readable and maintainable implementation, showcasing the power and simplicity that Functional Interfaces bring to Java programming.
 
 Benefits of Functional Interfaces:
 
@@ -676,7 +678,7 @@ David
 
 Explanation of the Example:
 
-In the Lambda Expression example, the `forEach` method is used with a lambda expression `name -> System.out.println(name)` to print each name in the list. While functional, this approach requires explicitly stating the parameter (`name`) and the method invocation, resulting in slightly more verbose code.
+The `forEach` method is used with a lambda expression `name -> System.out.println(name)` to print each name in the list. While functional, this approach requires explicitly stating the parameter (`name`) and the method invocation, resulting in slightly more verbose code.
 
 In contrast, the Method Reference example achieves the same functionality by using `System.out::println`, which directly references the `println` method of the `System.out` object. This eliminates the need for the lambda expression's parameter and method invocation syntax, resulting in cleaner and more readable code. The method reference clearly indicates that the `println` method should be applied to each element in the `names` list, making the code's intention immediately apparent.
 
@@ -911,14 +913,14 @@ User not found.
 
 Explanation of the Example:
 
-In the Pre-Java 8 example, the `findUserById` method returns a `User` object or null if the user is not found. The `printUserName` method then performs an explicit null check to determine whether to print the user's name or an error message. This approach can lead to scattered null checks and increases the risk of `NullPointerException`s if a null check is inadvertently omitted.
+In the Pre-Java 8 example, the `findUserById` method returns a `User` object or null. The `printUserName` method then performs an explicit null check to determine whether to print the user's name or an error message. This approach can lead to scattered null checks and increases the risk of `NullPointerException`s if a null check is inadvertently omitted.
 
 In the Java 8 Optional Class example, the `findUserById` method returns an `Optional<User>` instead of a nullable `User`. The `printUserName` method utilizes the `ifPresentOrElse` method provided by the `Optional` class to handle both scenarios—when the user is present and when the user is absent—without explicit null checks. This leads to more concise and readable code, clearly conveying the intent to handle optional values and reducing the likelihood of runtime exceptions related to null references.
 
 Benefits of the Optional Class:
 
 1. Explicit Representation of Optional Values: Clearly indicates when a value may be absent, making the code's intent more transparent.
-2. Reduced NullPointerExceptions: Encourages handling of absent values, minimizing the risk of encountering `NullPointerException`s.
+2. Reduced NullPointerExceptions: Encourages handling of absent values, minimizing the risk of encountering exceptions.
 3. Cleaner and More Readable Code: Eliminates the need for repetitive null checks, resulting in more streamlined and maintainable codebases.
 4. Functional Programming Integration: Provides functional-style methods such as `map`, `filter`, and `flatMap`, enabling more expressive data transformations.
 5. Encourages Best Practices: Promotes a disciplined approach to handling optional data, leading to more robust and reliable applications.
@@ -1517,17 +1519,17 @@ public class NewHttpClientExample {
                 .uri(URI.create(url))
                 .header("Accept", "application/vnd.github.v3+json")
                 .build();
-
         try {
             // Send the request and get the response
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
+            HttpResponse<String> response = client.send(request,
+                    HttpResponse.BodyHandlers.ofString());
             // Check the response status code
             if (response.statusCode() == 200) {
                 System.out.println("Response:");
                 System.out.println(response.body());
             } else {
-                System.out.println("GET request failed. Response Code: " + response.statusCode());
+                System.out.println("GET request failed. Response Code: "
+                        + response.statusCode());
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -3009,8 +3011,8 @@ public class TypeInferenceExample {
         Object obj = new Circle(new Point(7, 14), 15.5);
         
         if (obj instanceof Circle var circle) {
-            System.out.println("Circle with center at (" + circle.center().x() + ", " + circle.center().y() + 
-                               ") and radius " + circle.radius());
+            System.out.println("Circle with center at (" + circle.center().x() + ", "
+                    + circle.center().y() + ") and radius " + circle.radius());
         } else {
             System.out.println("Not a circle.");
         }
