@@ -3230,3 +3230,1630 @@ Transitioning an existing Java application to use modules involves several steps
 #### Conclusion
 
 The introduction of Modules (Project Jigsaw) marks a pivotal evolution in the Java ecosystem, addressing long-standing challenges related to encapsulation, dependency management, and scalability. By providing a structured and enforceable framework for organizing code, modules enhance the robustness, maintainability, and security of Java applications. This advancement not only simplifies the development of large-scale systems but also aligns Java with contemporary software architecture practices, ensuring its continued relevance and effectiveness in modern software development.
+
+# What changes in Java await us in the future?
+
+## Stream Collectors
+
+Stream Collectors are a crucial part of Java's Stream API, providing a way to accumulate elements from a stream into various result containers such as lists, sets, maps, or even custom objects. Future enhancements to Stream Collectors may include additional built-in collectors for common tasks, improved performance optimizations, and more flexible ways to combine or compose collectors. These advancements aim to simplify data processing and transformation tasks, making it easier for developers to write concise and efficient code.
+
+## Primitive Classes
+
+Primitive Classes introduce specialized classes for Java's primitive data types (like `int`, `double`, `boolean`, etc.), aiming to eliminate the need for boxing and unboxing operations that can lead to performance overhead. By providing classes tailored to handle primitive values directly, Java can achieve more efficient memory usage and faster execution times, especially in performance-critical applications. These classes may offer methods and utilities specifically designed for primitive operations, enhancing the language's ability to handle low-level data processing without sacrificing the benefits of object-oriented programming.
+
+## Flexible Constructor Bodies
+
+Flexible Constructor Bodies allow for more versatile and expressive constructor implementations in Java classes. Traditionally, constructors are limited in their structure and the operations they can perform during object initialization. With this enhancement, developers can include more complex logic, such as conditional statements, loops, or even leveraging pattern matching within constructors. This flexibility enables the creation of objects with more intricate initialization processes, improving code readability and maintainability by reducing the need for separate initialization methods or excessive boilerplate code.
+
+## Programmatic Class File Parsing
+
+Programmatic Class File Parsing provides Java developers with APIs and tools to parse and analyze Java `.class` files directly within their applications. This capability is particularly useful for building frameworks, development tools, or libraries that need to inspect, manipulate, or generate bytecode dynamically. By offering a standardized way to interact with class file structures, Java enhances its support for metaprogramming and reflection-based operations. Developers can leverage these APIs to perform tasks such as code analysis, instrumentation, or transformation, facilitating advanced programming techniques and enabling more powerful and flexible software solutions.
+
+# Review exercises
+
+## Tasks
+
+### Lambda Expressions
+
+#### Exercise 1: Sorting a List of Strings Alphabetically
+
+Task Description:  
+Use a lambda expression to sort a list of strings in alphabetical order.
+
+#### Exercise 2: Filtering Even Numbers from a List
+
+Task Description:  
+Use a lambda expression to filter and collect even numbers from a list of integers.
+
+#### Exercise 3: Implementing a Custom Functional Interface
+
+Task Description:  
+Create a custom functional interface and use a lambda expression to implement its method that calculates the square of a number.
+
+### Stream API
+
+#### Exercise 1: Calculating the Sum of a List of Integers
+
+Task Description:  
+Use StreamAPI to calculate the sum of all integers in a list.
+
+#### Exercise 2: Converting a List of Strings to Uppercase
+
+Task Description:  
+Use StreamAPI to convert all strings in a list to uppercase and collect them into a new list.
+
+#### Exercise 3: Grouping Employees by Department
+
+Task Description:  
+Use StreamAPI to group a list of employees by their department.
+
+### Functional Interfaces
+
+#### Exercise 1: Using Predicate to Filter a List of Strings
+
+Task Description:  
+Use the `Predicate` functional interface to filter a list of strings, retaining only those that start with the letter "A".
+
+#### Exercise 2: Using Function to Transform a List of Integers
+
+Task Description:  
+Use the `Function` functional interface to square each integer in a list and collect the results into a new list.
+
+#### Exercise 3: Creating and Using a Custom Functional Interface
+
+Task Description:  
+Create a custom functional interface named `StringConcatenator` with a method that concatenates two strings. Use a lambda expression to implement this interface and concatenate two given strings.
+
+### Method References
+
+#### Exercise 1: Sorting a List of Strings Using Method Reference
+
+Task Description:  
+Use a method reference to sort a list of strings in ascending order.
+
+#### Exercise 2: Printing List Elements Using Method Reference
+
+Task Description:  
+Use a method reference to print each element of a list of integers.
+
+#### Exercise 3: Using Constructor Reference to Create Objects
+
+Task Description:  
+Use a constructor reference to create a list of `Person` objects from a list of names.
+
+### Default Methods in Interfaces
+
+#### Exercise 1: Implementing a Default Method in an Interface
+
+Task Description:  
+Create an interface `Vehicle` with a default method `startEngine()` that prints "Engine started". Implement this interface in a class `Car` and invoke the `startEngine` method.
+
+#### Exercise 2: Overriding a Default Method in an Interface
+
+Task Description:  
+Create an interface `Calculator` with a default method `add(int a, int b)` that returns the sum of two integers. Implement this interface in a class `AdvancedCalculator` and override the `add` method to print the result before returning it.
+
+#### Exercise 3: Resolving Conflicts with Multiple Default Methods
+
+Task Description:  
+Create two interfaces `InterfaceA` and `InterfaceB`, each with a default method `defaultMethod()` that prints different messages. Create a class `ConflictingClass` that implements both interfaces and override the `defaultMethod()` to resolve the conflict by choosing one of the interface's default methods.
+
+### Optional Class
+
+#### Exercise 1: Handling Null Values with Optional
+
+Task Description:  
+Use the `Optional` class to safely retrieve the value of a potentially null string. If the string is null, return a default message "Default String".
+
+#### Exercise 2: Filtering Values with Optional
+
+Task Description:  
+Use the `Optional` class to filter an integer value. If the integer is even, return it; otherwise, return an empty `Optional`.
+
+#### Exercise 3: Using Optional with Map and FlatMap
+
+Task Description:  
+Use the `Optional` class to transform a string to its length using `map`, and then transform it to an `Optional<String>` describing the length using `flatMap`.
+
+### New Date and Time API (java.time)
+
+#### Exercise 1: Formatting and Parsing Dates
+
+Task Description:  
+Use the `DateTimeFormatter` to format the current date into `dd-MM-yyyy` format and parse a string date `"25-12-2025"` back to a `LocalDate` object.
+
+#### Exercise 2: Calculating the Difference Between Two Dates
+
+Task Description:  
+Calculate the number of days between `2025-01-01` and `2025-12-31` using `Period`.
+
+#### Exercise 3: Working with ZonedDateTime
+
+Task Description:  
+Create a `ZonedDateTime` object for the current moment in the `Europe/Paris` timezone and display it in the `America/New_York` timezone.
+
+### Local-Variable Syntax for Lambda Parameters
+
+#### Exercise 1: Using `var` in Lambda Parameters Without Type Annotations
+
+Task Description:  
+Use `var` in a lambda expression to iterate over a list of integers and print each number multiplied by 2.
+
+#### Exercise 2: Using `var` with Type Annotations in Lambda Parameters
+
+Task Description:  
+Use `var` with type annotations in a lambda expression to filter a list of strings that have a length greater than 3 and collect them into a new list.
+
+#### Exercise 3: Using `var` with Multiple Lambda Parameters
+
+Task Description:  
+Use `var` in a lambda expression with multiple parameters to concatenate two strings with a space in between.
+
+### Enhanced String API
+
+#### Exercise 1: Using `isBlank()` to Validate Input Strings
+
+Task Description:  
+Use the `isBlank()` method to check if a given string is empty or contains only whitespace. Print an appropriate message based on the result.
+
+#### Exercise 2: Splitting a String into Lines Using `lines()`
+
+Task Description:  
+Use the `lines()` method to split a multi-line string into individual lines and print each line separately.
+
+#### Exercise 3: Repeating a String Using `repeat()`
+
+Task Description:  
+Use the `repeat()` method to create a string that repeats a given word 5 times, separated by spaces.
+
+### Sealed Classes and Interfaces
+
+#### Exercise 1: Creating a Sealed Class Hierarchy
+
+Task Description:  
+Create a sealed class `Shape` with permitted subclasses `Circle` and `Rectangle`. Implement the subclasses and demonstrate their instantiation.
+
+#### Exercise 2: Implementing Sealed Interfaces
+
+Task Description:  
+Create a sealed interface `Animal` with permitted implementations `Dog` and `Cat`. Implement the classes and demonstrate polymorphism.
+
+#### Exercise 3: Extending Sealed Classes with Further Restrictions
+
+Task Description:  
+Create a non-sealed class `Triangle` extending a sealed class `Shape`. Implement and demonstrate its usage.
+
+### Pattern Matching for instanceof
+
+#### Exercise 1: Basic Pattern Matching with `instanceof`
+
+Task Description:  
+Use pattern matching with the `instanceof` operator to check if an object is of type `String` and print its length.
+
+#### Exercise 2: Pattern Matching with Multiple Types
+
+Task Description:  
+Use pattern matching with the `instanceof` operator to handle different types (`Integer` and `Double`) and perform specific operations based on the type.
+
+#### Exercise 3: Using Pattern Matching in Switch Expressions
+
+Task Description:  
+Use pattern matching with `instanceof` in a switch expression to identify the type of an object and return a specific message for each type.
+
+### Text Blocks
+
+#### Exercise 1: Creating a Multi-line JSON String with Text Blocks
+
+Task Description:  
+Use a text block to create a multi-line JSON string representing a user with `name`, `age`, and `email`, and print it.
+
+#### Exercise 2: Embedding HTML Content Using Text Blocks
+
+Task Description:  
+Use a text block to create a multi-line HTML string for a simple webpage with a title and a header, then print it.
+
+#### Exercise 3: Using Text Blocks with Escape Characters
+
+Task Description:  
+Use a text block to create a multi-line string that includes both double quotes and a backslash, such as a file path, and print it.
+
+### Records
+
+#### Exercise 1: Defining a Simple Record and Accessing Its Fields
+
+Task Description:  
+Create a `record` named `Person` with fields `name` (String) and `age` (int). Instantiate the record and print its fields.
+
+#### Exercise 2: Using Records with Collections and Streams
+
+Task Description:  
+Create a list of `Book` records with fields `title` (String) and `author` (String). Use StreamAPI to filter books by a specific author and collect the titles into a new list.
+
+#### Exercise 3: Adding Methods to Records and Implementing Interfaces
+
+Task Description:  
+Create a `record` named `Rectangle` with fields `length` and `width`. Add a method `area()` to calculate the area of the rectangle. Implement the `Shape` interface with a method `perimeter()` and provide its implementation in the record.
+
+### Enhanced switch Statements
+
+#### Exercise 1: Using Switch Expressions to Determine Day Type
+
+Task Description:  
+Use an enhanced switch expression to determine if a given day is a weekday or weekend.
+
+#### Exercise 2: Using Switch Statement with Yield to Return Values
+
+Task Description:  
+Use an enhanced switch statement with `yield` to assign a numerical value based on the given season.
+
+#### Exercise 3: Using Pattern Matching with Switch for Type Checking
+
+Task Description:  
+Use an enhanced switch statement with pattern matching to perform operations based on the object's type.
+
+### Record Patterns
+
+#### Exercise 1: Destructuring a Record with `instanceof` Pattern Matching
+
+Task Description:  
+Use record patterns with the `instanceof` operator to destructure a `Person` record and print the name and age if the object is an instance of `Person`.
+
+#### Exercise 2: Using Record Patterns in a Switch Statement
+
+Task Description:  
+Use record patterns within a switch expression to handle different types of `Shape` records (`Circle`, `Rectangle`, `Triangle`) and calculate their areas.
+
+#### Exercise 3: Nested Record Patterns for Complex Data Structures
+
+Task Description:  
+Use nested record patterns to destructure a `Company` record containing an `Employee` record and print the employee's details if the company has a specific name.
+
+### Virtual Threads
+
+#### Exercise 1: Creating and Running a Virtual Thread
+
+Task Description:  
+Create and start a virtual thread that prints "Hello from Virtual Thread!".
+
+#### Exercise 2: Executing Multiple Virtual Threads Using an Executor
+
+Task Description:  
+Use an `Executor` with virtual threads to execute five tasks concurrently, each printing its task number.
+
+#### Exercise 3: Handling Blocking I/O with Virtual Threads
+
+Task Description:  
+Use virtual threads to perform a blocking file read operation and print the first line of the file.
+
+### Sequenced Collections
+
+#### Exercise 1: Creating and Manipulating a Sequenced Collection
+
+Task Description:  
+Create a `LinkedList` (which implements `SequencedCollection`) of integers. Add elements to both the beginning and end of the list, then print the entire list.
+
+#### Exercise 2: Iterating from Both Ends of a Sequenced Collection
+
+Task Description:  
+Create a `LinkedList` of strings and use both `iterator()` and `descendingIterator()` to traverse and print the elements from the beginning and the end.
+
+#### Exercise 3: Merging Two Sequenced Collections While Preserving Order
+
+Task Description:  
+Create two `LinkedList` instances of integers. Merge the second list into the first one by adding all elements to the end of the first list, then print the merged collection.
+
+### Modules
+
+#### Exercise 1: Creating a Simple Module
+
+Task Description:  
+Create a module named `com.example.greeter` that exports a package `com.example.greeter` containing a `Greeter` class with a method `greet()` that prints "Hello, Module!".
+#### Exercise 2: Using `requires transitive` in Modules
+
+Task Description:  
+Create two modules: `com.example.utils` that exports a package `com.example.utils` containing a `Utils` class with a static method `printMessage(String message)`, and `com.example.app` that requires `com.example.utils` transitively and uses the `Utils` class to print a message.
+
+#### Exercise 3: Providing and Consuming Services with Modules
+
+Task Description:  
+Create a module `com.example.service` that provides an implementation of a `com.example.api.GreetingService` interface. Then, create a module `com.example.client` that consumes the `GreetingService` using the `uses` and `provides` directives.
+
+## Solutions
+
+### Lambda Expressions
+
+#### Exercise 1: Sorting a List of Strings Alphabetically
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+
+public class SortStrings {
+    public static void main(String[] args) {
+        List<String> fruits = Arrays.asList("Banana", "Apple", "Cherry", "Date");
+        fruits.sort((s1, s2) -> s1.compareTo(s2));
+        System.out.println(fruits);
+    }
+}
+```
+
+#### Exercise 2: Filtering Even Numbers from a List
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class FilterEvenNumbers {
+    public static void main(String[] args) {
+        List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+        List<Integer> evenNumbers = numbers.stream()
+                                           .filter(n -> n % 2 == 0)
+                                           .collect(Collectors.toList());
+        System.out.println(evenNumbers);
+    }
+}
+```
+
+#### Exercise 3: Implementing a Custom Functional Interface
+
+Solution:
+```java
+@FunctionalInterface
+interface MathOperation {
+    int operate(int a);
+}
+
+public class CustomFunctionalInterface {
+    public static void main(String[] args) {
+        MathOperation square = (a) -> a * a;
+        int result = square.operate(5);
+        System.out.println("Square of 5 is: " + result);
+    }
+}
+```
+
+### Stream API
+
+#### Exercise 1: Calculating the Sum of a List of Integers
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+
+public class SumOfIntegers {
+    public static void main(String[] args) {
+        List<Integer> numbers = Arrays.asList(10, 20, 30, 40, 50);
+        int sum = numbers.stream()
+                         .mapToInt(Integer::intValue)
+                         .sum();
+        System.out.println("Sum: " + sum);
+    }
+}
+```
+
+#### Exercise 2: Converting a List of Strings to Uppercase
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class UppercaseStrings {
+    public static void main(String[] args) {
+        List<String> words = Arrays.asList("hello", "world", "java", "streams");
+        List<String> uppercased = words.stream()
+                                       .map(String::toUpperCase)
+                                       .collect(Collectors.toList());
+        System.out.println(uppercased);
+    }
+}
+```
+
+#### Exercise 3: Grouping Employees by Department
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+class Employee {
+    String name;
+    String department;
+
+    Employee(String name, String department) {
+        this.name = name;
+        this.department = department;
+    }
+}
+
+public class GroupEmployees {
+    public static void main(String[] args) {
+        List<Employee> employees = Arrays.asList(
+            new Employee("Alice", "HR"),
+            new Employee("Bob", "IT"),
+            new Employee("Charlie", "HR"),
+            new Employee("David", "IT"),
+            new Employee("Eve", "Finance")
+        );
+
+        Map<String, List<Employee>> grouped = employees.stream()
+                                                       .collect(Collectors.groupingBy(e -> e.department));
+
+        grouped.forEach((dept, empList) -> {
+            System.out.println(dept + ":");
+            empList.forEach(e -> System.out.println("  " + e.name));
+        });
+    }
+}
+```
+
+### Functional Interfaces
+
+#### Exercise 1: Using Predicate to Filter a List of Strings
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+public class PredicateFilter {
+    public static void main(String[] args) {
+        List<String> names = Arrays.asList("Alice", "Bob", "Amanda", "Brian", "Andrew");
+        Predicate<String> startsWithA = s -> s.startsWith("A");
+        List<String> filtered = names.stream()
+                                     .filter(startsWithA)
+                                     .collect(Collectors.toList());
+        System.out.println(filtered);
+    }
+}
+```
+
+#### Exercise 2: Using Function to Transform a List of Integers
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+public class FunctionTransform {
+    public static void main(String[] args) {
+        List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5);
+        Function<Integer, Integer> square = x -> x * x;
+        List<Integer> squaredNumbers = numbers.stream()
+                                              .map(square)
+                                              .collect(Collectors.toList());
+        System.out.println(squaredNumbers);
+    }
+}
+```
+
+#### Exercise 3: Creating and Using a Custom Functional Interface
+
+Solution:
+```java
+@FunctionalInterface
+interface StringConcatenator {
+    String concatenate(String a, String b);
+}
+
+public class MultipleVarLambda {
+    public static void main(String[] args) {
+        StringConcatenator concat = (a, b) -> a + " " + b;
+        String result = concat.concatenate("Hello", "World");
+        System.out.println(result);
+    }
+}
+```
+
+### Method References
+
+#### Exercise 1: Sorting a List of Strings Using Method Reference
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+
+public class SortWithMethodReference {
+    public static void main(String[] args) {
+        List<String> cities = Arrays.asList("London", "New York", "Paris", "Tokyo");
+        cities.sort(String::compareTo);
+        System.out.println(cities);
+    }
+}
+```
+
+#### Exercise 2: Printing List Elements Using Method Reference
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+
+public class PrintWithMethodReference {
+    public static void main(String[] args) {
+        List<Integer> numbers = Arrays.asList(10, 20, 30, 40, 50);
+        numbers.forEach(System.out::println);
+    }
+}
+```
+
+#### Exercise 3: Using Constructor Reference to Create Objects
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+class Person {
+    String name;
+
+    Person(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+}
+
+public class ConstructorReference {
+    public static void main(String[] args) {
+        List<String> names = Arrays.asList("Alice", "Bob", "Charlie");
+        List<Person> people = names.stream()
+                                   .map(Person::new)
+                                   .collect(Collectors.toList());
+        people.forEach(System.out::println);
+    }
+}
+```
+
+### Default Methods in Interfaces
+
+#### Exercise 1: Implementing a Default Method in an Interface
+
+Solution:
+```java
+interface Vehicle {
+    default void startEngine() {
+        System.out.println("Engine started");
+    }
+}
+
+public class Car implements Vehicle {
+    public static void main(String[] args) {
+        Car car = new Car();
+        car.startEngine();
+    }
+}
+```
+
+#### Exercise 2: Overriding a Default Method in an Interface
+
+Solution:
+```java
+interface Calculator {
+    default int add(int a, int b) {
+        return a + b;
+    }
+}
+
+public class AdvancedCalculator implements Calculator {
+    @Override
+    public int add(int a, int b) {
+        int result = Calculator.super.add(a, b);
+        System.out.println("Adding " + a + " and " + b + ": " + result);
+        return result;
+    }
+
+    public static void main(String[] args) {
+        AdvancedCalculator calc = new AdvancedCalculator();
+        calc.add(5, 10);
+    }
+}
+```
+
+#### Exercise 3: Resolving Conflicts with Multiple Default Methods
+
+Solution:
+```java
+interface InterfaceA {
+    default void defaultMethod() {
+        System.out.println("InterfaceA defaultMethod");
+    }
+}
+
+interface InterfaceB {
+    default void defaultMethod() {
+        System.out.println("InterfaceB defaultMethod");
+    }
+}
+
+public class ConflictingClass implements InterfaceA, InterfaceB {
+    @Override
+    public void defaultMethod() {
+        InterfaceA.super.defaultMethod();
+    }
+
+    public static void main(String[] args) {
+        ConflictingClass obj = new ConflictingClass();
+        obj.defaultMethod();
+    }
+}
+```
+
+### Optional Class
+
+#### Exercise 1: Handling Null Values with Optional
+
+Solution:
+```java
+import java.util.Optional;
+
+public class OptionalExample {
+    public static void main(String[] args) {
+        String possiblyNull = null;
+        String result = Optional.ofNullable(possiblyNull)
+                                .orElse("Default String");
+        System.out.println(result);
+    }
+}
+```
+
+#### Exercise 2: Filtering Values with Optional
+
+Solution:
+```java
+import java.util.Optional;
+
+public class OptionalFilter {
+    public static void main(String[] args) {
+        Integer number = 5;
+        Optional<Integer> evenNumber = Optional.ofNullable(number)
+                                              .filter(n -> n % 2 == 0);
+        evenNumber.ifPresentOrElse(
+            n -> System.out.println("Even number: " + n),
+            () -> System.out.println("No even number present")
+        );
+    }
+}
+```
+
+#### Exercise 3: Using Optional with Map and FlatMap
+
+Solution:
+```java
+import java.util.Optional;
+
+public class OptionalMapFlatMap {
+    public static void main(String[] args) {
+        Optional<String> optionalString = Optional.of("Hello World");
+
+        // Using map to get the length of the string
+        Optional<Integer> length = optionalString.map(String::length);
+        length.ifPresent(l -> System.out.println("Length: " + l));
+
+        // Using flatMap to create an Optional description
+        Optional<String> description = optionalString.flatMap(s -> Optional.of("Length is " + s.length()));
+        description.ifPresent(System.out::println);
+    }
+}
+```
+
+### New Date and Time API (java.time)
+
+#### Exercise 1: Formatting and Parsing Dates
+
+Solution:
+```java
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+public class DateFormatParse {
+    public static void main(String[] args) {
+        // Formatting current date
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        String formattedDate = today.format(formatter);
+        System.out.println("Formatted Date: " + formattedDate);
+        
+        // Parsing a string to LocalDate
+        String dateString = "25-12-2025";
+        LocalDate parsedDate = LocalDate.parse(dateString, formatter);
+        System.out.println("Parsed Date: " + parsedDate);
+    }
+}
+```
+
+#### Exercise 2: Calculating the Difference Between Two Dates
+
+Solution:
+```java
+import java.time.LocalDate;
+import java.time.Period;
+
+public class DateDifference {
+    public static void main(String[] args) {
+        LocalDate startDate = LocalDate.of(2025, 1, 1);
+        LocalDate endDate = LocalDate.of(2025, 12, 31);
+        
+        Period period = Period.between(startDate, endDate);
+        int days = period.getDays() + period.getMonths() * 30 + period.getYears() * 365; // Approximation
+        System.out.println("Difference in days: " + days);
+    }
+}
+```
+
+#### Exercise 3: Working with ZonedDateTime
+
+Solution:
+```java
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
+public class ZonedDateTimeExample {
+    public static void main(String[] args) {
+        ZonedDateTime parisTime = ZonedDateTime.now(ZoneId.of("Europe/Paris"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+        
+        System.out.println("Paris Time: " + parisTime.format(formatter));
+        
+        ZonedDateTime newYorkTime = parisTime.withZoneSameInstant(ZoneId.of("America/New_York"));
+        System.out.println("New York Time: " + newYorkTime.format(formatter));
+    }
+}
+```
+
+### Local-Variable Syntax for Lambda Parameters
+
+#### Exercise 1: Using `var` in Lambda Parameters Without Type Annotations
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+
+public class VarLambdaExample {
+    public static void main(String[] args) {
+        List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5);
+        numbers.forEach((var number) -> System.out.println(number * 2));
+    }
+}
+```
+
+#### Exercise 2: Using `var` with Type Annotations in Lambda Parameters
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class VarWithAnnotations {
+    public static void main(String[] args) {
+        List<String> words = Arrays.asList("Java", "is", "fun", "to", "learn");
+        List<String> filtered = words.stream()
+                                     .filter((var s) -> s.length() > 3)
+                                     .collect(Collectors.toList());
+        System.out.println(filtered);
+    }
+}
+```
+
+#### Exercise 3: Using `var` with Multiple Lambda Parameters
+
+Solution:
+```java
+@FunctionalInterface
+interface BiStringConcatenator {
+    String concatenate(var String a, var String b);
+}
+
+public class MultipleVarLambda {
+    public static void main(String[] args) {
+        BiStringConcatenator concat = (var a, var b) -> a + " " + b;
+        String result = concat.concatenate("Hello", "World");
+        System.out.println(result);
+    }
+}
+```
+
+### Enhanced String API
+
+#### Exercise 1: Using `isBlank()` to Validate Input Strings
+
+Solution:
+```java
+public class IsBlankExample {
+    public static void main(String[] args) {
+        String input1 = "   ";
+        String input2 = "Hello, World!";
+
+        if (input1.isBlank()) {
+            System.out.println("Input1 is blank.");
+        } else {
+            System.out.println("Input1 is not blank.");
+        }
+
+        if (input2.isBlank()) {
+            System.out.println("Input2 is blank.");
+        } else {
+            System.out.println("Input2 is not blank.");
+        }
+    }
+}
+```
+
+#### Exercise 2: Splitting a String into Lines Using `lines()`
+
+Solution:
+```java
+public class LinesExample {
+    public static void main(String[] args) {
+        String multiLine = "First line\nSecond line\r\nThird line\rFourth line";
+
+        multiLine.lines().forEach(line -> System.out.println("Line: " + line));
+    }
+}
+```
+
+#### Exercise 3: Repeating a String Using `repeat()`
+
+Solution:
+```java
+public class RepeatExample {
+    public static void main(String[] args) {
+        String word = "Echo";
+        String repeated = String.join(" ", word.repeat(5).split("(?<=\\G.{4})"));
+        System.out.println(repeated);
+    }
+}
+```
+
+### Sealed Classes and Interfaces
+
+#### Exercise 1: Creating a Sealed Class Hierarchy
+
+Solution:
+```java
+public sealed class Shape permits Circle, Rectangle {
+    // Common properties or methods
+}
+
+public final class Circle extends Shape {
+    double radius;
+
+    public Circle(double radius) {
+        this.radius = radius;
+    }
+
+    @Override
+    public String toString() {
+        return "Circle with radius " + radius;
+    }
+}
+
+public final class Rectangle extends Shape {
+    double length, width;
+
+    public Rectangle(double length, double width) {
+        this.length = length;
+        this.width = width;
+    }
+
+    @Override
+    public String toString() {
+        return "Rectangle with length " + length + " and width " + width;
+    }
+}
+
+public class SealedClassExample {
+    public static void main(String[] args) {
+        Shape circle = new Circle(5.0);
+        Shape rectangle = new Rectangle(4.0, 6.0);
+        System.out.println(circle);
+        System.out.println(rectangle);
+    }
+}
+```
+
+#### Exercise 2: Implementing Sealed Interfaces
+
+Solution:
+```java
+public sealed interface Animal permits Dog, Cat {
+    void makeSound();
+}
+
+public final class Dog implements Animal {
+    @Override
+    public void makeSound() {
+        System.out.println("Woof!");
+    }
+}
+
+public final class Cat implements Animal {
+    @Override
+    public void makeSound() {
+        System.out.println("Meow!");
+    }
+}
+
+public class SealedInterfaceExample {
+    public static void main(String[] args) {
+        Animal dog = new Dog();
+        Animal cat = new Cat();
+        dog.makeSound();
+        cat.makeSound();
+    }
+}
+```
+
+#### Exercise 3: Extending Sealed Classes with Further Restrictions
+
+Solution:
+```java
+public sealed class Shape permits Circle, Rectangle, Triangle {
+    // Common properties or methods
+}
+
+public final class Circle extends Shape {
+    double radius;
+
+    public Circle(double radius) {
+        this.radius = radius;
+    }
+
+    @Override
+    public String toString() {
+        return "Circle with radius " + radius;
+    }
+}
+
+public final class Rectangle extends Shape {
+    double length, width;
+
+    public Rectangle(double length, double width) {
+        this.length = length;
+        this.width = width;
+    }
+
+    @Override
+    public String toString() {
+        return "Rectangle with length " + length + " and width " + width;
+    }
+}
+
+public non-sealed class Triangle extends Shape {
+    double base, height;
+
+    public Triangle(double base, double height) {
+        this.base = base;
+        this.height = height;
+    }
+
+    @Override
+    public String toString() {
+        return "Triangle with base " + base + " and height " + height;
+    }
+}
+
+public class SealedClassExtendedExample {
+    public static void main(String[] args) {
+        Shape triangle = new Triangle(3.0, 4.0);
+        System.out.println(triangle);
+    }
+}
+```
+
+### Pattern Matching for instanceof
+
+#### Exercise 1: Basic Pattern Matching with `instanceof`
+
+Solution:
+```java
+public class InstanceofPatternMatching {
+    public static void main(String[] args) {
+        Object obj = "Hello, World!";
+        
+        if (obj instanceof String s) {
+            System.out.println("String length: " + s.length());
+        } else {
+            System.out.println("Not a string.");
+        }
+    }
+}
+```
+
+#### Exercise 2: Pattern Matching with Multiple Types
+
+Solution:
+```java
+public class MultipleInstanceofPatterns {
+    public static void main(String[] args) {
+        Object num = 25.5;
+        
+        if (num instanceof Integer i) {
+            System.out.println("Integer value doubled: " + (i * 2));
+        } else if (num instanceof Double d) {
+            System.out.println("Double value halved: " + (d / 2));
+        } else {
+            System.out.println("Unknown type.");
+        }
+    }
+}
+```
+
+#### Exercise 3: Using Pattern Matching in Switch Expressions
+
+Solution:
+```java
+public class SwitchPatternMatching {
+    public static void main(String[] args) {
+        Object obj = "Java Pattern Matching";
+        
+        String message = switch (obj) {
+            case String s -> "It's a string with length " + s.length();
+            case Integer i -> "It's an integer with value " + i;
+            case Double d -> "It's a double with value " + d;
+            default -> "Unknown type.";
+        };
+        
+        System.out.println(message);
+    }
+}
+```
+
+### Text Blocks
+
+#### Exercise 1: Creating a Multi-line JSON String with Text Blocks
+
+Solution:
+```java
+public class JsonTextBlockExample {
+    public static void main(String[] args) {
+        String json = """
+            {
+                "name": "John Doe",
+                "age": 30,
+                "email": "john.doe@example.com"
+            }
+            """;
+        System.out.println(json);
+    }
+}
+```
+
+#### Exercise 2: Embedding HTML Content Using Text Blocks
+
+Solution:
+```java
+public class HtmlTextBlockExample {
+    public static void main(String[] args) {
+        String html = """
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <title>Sample Page</title>
+                </head>
+                <body>
+                    <h1>Welcome to the Sample Page</h1>
+                </body>
+            </html>
+            """;
+        System.out.println(html);
+    }
+}
+```
+
+#### Exercise 3: Using Text Blocks with Escape Characters
+
+Solution:
+```java
+public class EscapeCharactersTextBlock {
+    public static void main(String[] args) {
+        String filePath = """
+            {
+                "filePath": "C:\\Users\\JohnDoe\\Documents\\file.txt"
+            }
+            """;
+        System.out.println(filePath);
+    }
+}
+```
+
+### Records
+
+#### Exercise 1: Defining a Simple Record and Accessing Its Fields
+
+Solution:
+```java
+public record Person(String name, int age) {}
+
+public class RecordExample {
+    public static void main(String[] args) {
+        Person person = new Person("Alice", 30);
+        System.out.println("Name: " + person.name());
+        System.out.println("Age: " + person.age());
+    }
+}
+```
+
+#### Exercise 2: Using Records with Collections and Streams
+
+Solution:
+```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public record Book(String title, String author) {}
+
+public class BookCollectionExample {
+    public static void main(String[] args) {
+        List<Book> books = Arrays.asList(
+            new Book("1984", "George Orwell"),
+            new Book("Animal Farm", "George Orwell"),
+            new Book("Brave New World", "Aldous Huxley")
+        );
+
+        String targetAuthor = "George Orwell";
+        List<String> titlesByAuthor = books.stream()
+                                           .filter(book -> book.author().equals(targetAuthor))
+                                           .map(Book::title)
+                                           .collect(Collectors.toList());
+
+        System.out.println("Books by " + targetAuthor + ": " + titlesByAuthor);
+    }
+}
+```
+
+#### Exercise 3: Adding Methods to Records and Implementing Interfaces
+
+Solution:
+```java
+interface Shape {
+    double perimeter();
+}
+
+public record Rectangle(double length, double width) implements Shape {
+    public double area() {
+        return length * width;
+    }
+
+    @Override
+    public double perimeter() {
+        return 2 * (length + width);
+    }
+}
+
+public class RecordWithMethodsExample {
+    public static void main(String[] args) {
+        Rectangle rect = new Rectangle(5.0, 3.0);
+        System.out.println("Area: " + rect.area());
+        System.out.println("Perimeter: " + rect.perimeter());
+    }
+}
+```
+
+### Enhanced switch Statements
+
+#### Exercise 1: Using Switch Expressions to Determine Day Type
+
+Solution:
+```java
+public class DayTypeExample {
+    public static void main(String[] args) {
+        String day = "SUNDAY";
+        
+        String type = switch (day.toUpperCase()) {
+            case "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY" -> "Weekday";
+            case "SATURDAY", "SUNDAY" -> "Weekend";
+            default -> "Invalid day";
+        };
+        
+        System.out.println(day + " is a " + type);
+    }
+}
+```
+
+#### Exercise 2: Using Switch Statement with Yield to Return Values
+
+Solution:
+```java
+public class SeasonValueExample {
+    public static void main(String[] args) {
+        String season = "SPRING";
+        
+        int value = switch (season.toLowerCase()) {
+            case "spring" -> 1;
+            case "summer" -> 2;
+            case "autumn", "fall" -> 3;
+            case "winter" -> 4;
+            default -> {
+                System.out.println("Unknown season");
+                yield -1;
+            }
+        };
+        
+        System.out.println("Season value: " + value);
+    }
+}
+```
+
+#### Exercise 3: Using Pattern Matching with Switch for Type Checking
+
+Solution:
+```java
+public class PatternMatchingSwitchExample {
+    public static void main(String[] args) {
+        Object obj = 15;
+        
+        String result = switch (obj) {
+            case String s -> "String of length " + s.length();
+            case Integer i -> "Integer squared: " + (i * i);
+            case Double d -> "Double halved: " + (d / 2);
+            default -> "Unknown type";
+        };
+        
+        System.out.println(result);
+    }
+}
+```
+
+### Record Patterns
+
+#### Exercise 1: Destructuring a Record with `instanceof` Pattern Matching
+
+Solution:
+```java
+public record Person(String name, int age) {}
+
+public class RecordPatternExample {
+    public static void main(String[] args) {
+        Object obj = new Person("Alice", 30);
+        
+        if (obj instanceof Person(String name, int age)) {
+            System.out.println("Name: " + name + ", Age: " + age);
+        } else {
+            System.out.println("Not a Person instance.");
+        }
+    }
+}
+```
+
+#### Exercise 2: Using Record Patterns in a Switch Statement
+
+Solution:
+```java
+public sealed interface Shape permits Circle, Rectangle, Triangle {}
+
+public record Circle(double radius) implements Shape {}
+public record Rectangle(double length, double width) implements Shape {}
+public record Triangle(double base, double height) implements Shape {}
+
+public class ShapeAreaCalculator {
+    public static void main(String[] args) {
+        Shape shape = new Rectangle(5.0, 3.0);
+        
+        double area = switch (shape) {
+            case Circle(double radius) -> Math.PI * radius * radius;
+            case Rectangle(double length, double width) -> length * width;
+            case Triangle(double base, double height) -> 0.5 * base * height;
+        };
+        
+        System.out.println("Area: " + area);
+    }
+}
+```
+
+#### Exercise 3: Nested Record Patterns for Complex Data Structures
+
+Solution:
+```java
+public record Employee(String name, int id) {}
+public record Company(String companyName, Employee employee) {}
+
+public class NestedRecordPatternExample {
+    public static void main(String[] args) {
+        Company company = new Company("TechCorp", new Employee("Bob", 101));
+        
+        if (company instanceof Company("TechCorp", Employee(String name, int id))) {
+            System.out.println("Employee Name: " + name + ", ID: " + id);
+        } else {
+            System.out.println("Company not recognized or employee details unavailable.");
+        }
+    }
+}
+```
+
+### Virtual Threads
+
+#### Exercise 1: Creating and Running a Virtual Thread
+
+Solution:
+```java
+public class VirtualThreadExample {
+    public static void main(String[] args) {
+        Thread vt = Thread.startVirtualThread(() -> {
+            System.out.println("Hello from Virtual Thread!");
+        });
+        vt.join();
+    }
+}
+```
+
+#### Exercise 2: Executing Multiple Virtual Threads Using an Executor
+
+Solution:
+```java
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class VirtualThreadExecutorExample {
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+
+        for (int i = 1; i <= 5; i++) {
+            final int taskNumber = i;
+            executor.submit(() -> {
+                System.out.println("Executing Task " + taskNumber + " on " + Thread.currentThread());
+            });
+        }
+
+        executor.shutdown();
+        executor.awaitTermination(1, java.util.concurrent.TimeUnit.MINUTES);
+    }
+}
+```
+
+#### Exercise 3: Handling Blocking I/O with Virtual Threads
+
+Solution:
+```java
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class VirtualThreadFileRead {
+    public static void main(String[] args) {
+        Thread vt = Thread.startVirtualThread(() -> {
+            try (BufferedReader reader = new BufferedReader(new FileReader("sample.txt"))) {
+                String firstLine = reader.readLine();
+                System.out.println("First line: " + firstLine);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        try {
+            vt.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Sequenced Collections
+
+#### Exercise 1: Creating and Manipulating a Sequenced Collection
+
+Solution:
+```java
+import java.util.LinkedList;
+import java.util.SequencedCollection;
+
+public class SequencedCollectionExample {
+    public static void main(String[] args) {
+        SequencedCollection<Integer> numbers = new LinkedList<>();
+
+        // Adding elements to the end
+        numbers.addLast(10);
+        numbers.addLast(20);
+        numbers.addLast(30);
+
+        // Adding elements to the beginning
+        numbers.addFirst(5);
+        numbers.addFirst(2);
+
+        System.out.println("Sequenced Collection: " + numbers);
+    }
+}
+```
+
+#### Exercise 2: Iterating from Both Ends of a Sequenced Collection
+
+Solution:
+```java
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.SequencedCollection;
+
+public class DualIteratorExample {
+    public static void main(String[] args) {
+        SequencedCollection<String> names = new LinkedList<>();
+        names.addLast("Alice");
+        names.addLast("Bob");
+        names.addLast("Charlie");
+        names.addLast("Diana");
+
+        System.out.println("Forward Iteration:");
+        Iterator<String> forward = names.iterator();
+        while (forward.hasNext()) {
+            System.out.println(forward.next());
+        }
+
+        System.out.println("\nReverse Iteration:");
+        Iterator<String> reverse = ((LinkedList<String>) names).descendingIterator();
+        while (reverse.hasNext()) {
+            System.out.println(reverse.next());
+        }
+    }
+}
+```
+
+#### Exercise 3: Merging Two Sequenced Collections While Preserving Order
+
+Solution:
+```java
+import java.util.LinkedList;
+import java.util.SequencedCollection;
+
+public class MergeSequencedCollections {
+    public static void main(String[] args) {
+        SequencedCollection<Integer> list1 = new LinkedList<>();
+        list1.addLast(1);
+        list1.addLast(2);
+        list1.addLast(3);
+
+        SequencedCollection<Integer> list2 = new LinkedList<>();
+        list2.addLast(4);
+        list2.addLast(5);
+        list2.addLast(6);
+
+        // Merging list2 into list1
+        list1.addAll(list2);
+
+        System.out.println("Merged Sequenced Collection: " + list1);
+    }
+}
+```
+
+### Modules
+
+#### Exercise 1: Creating a Simple Module
+
+Solution:
+```java
+// File: com/example/greeter/module-info.java
+module com.example.greeter {
+    exports com.example.greeter;
+}
+
+// File: com/example/greeter/Greeter.java
+package com.example.greeter;
+
+public class Greeter {
+    public void greet() {
+        System.out.println("Hello, Module!");
+    }
+}
+
+// File: com/example/app/module-info.java
+module com.example.app {
+    requires com.example.greeter;
+}
+
+// File: com/example/app/App.java
+package com.example.app;
+
+import com.example.greeter.Greeter;
+
+public class App {
+    public static void main(String[] args) {
+        Greeter greeter = new Greeter();
+        greeter.greet();
+    }
+}
+```
+
+#### Exercise 2: Using `requires transitive` in Modules
+
+Solution:
+```java
+// File: com/example/utils/module-info.java
+module com.example.utils {
+    exports com.example.utils;
+}
+
+// File: com/example/utils/Utils.java
+package com.example.utils;
+
+public class Utils {
+    public static void printMessage(String message) {
+        System.out.println(message);
+    }
+}
+
+// File: com/example/app/module-info.java
+module com.example.app {
+    requires transitive com.example.utils;
+}
+
+// File: com/example/app/App.java
+package com.example.app;
+
+import com.example.utils.Utils;
+
+public class App {
+    public static void main(String[] args) {
+        Utils.printMessage("Using transitive requires in modules!");
+    }
+}
+```
+
+#### Exercise 3: Providing and Consuming Services with Modules
+
+Solution:
+```java
+// File: com/example/api/GreetingService.java
+package com.example.api;
+
+public interface GreetingService {
+    void greet();
+}
+
+// File: com/example/service/module-info.java
+module com.example.service {
+    requires com.example.api;
+    provides com.example.api.GreetingService with com.example.service.GreetingServiceImpl;
+}
+
+// File: com/example/service/GreetingServiceImpl.java
+package com.example.service;
+
+import com.example.api.GreetingService;
+
+public class GreetingServiceImpl implements GreetingService {
+    @Override
+    public void greet() {
+        System.out.println("Hello from GreetingServiceImpl!");
+    }
+}
+
+// File: com/example/client/module-info.java
+module com.example.client {
+    requires com.example.api;
+    uses com.example.api.GreetingService;
+}
+
+// File: com/example/client/App.java
+package com.example.client;
+
+import com.example.api.GreetingService;
+import java.util.ServiceLoader;
+
+public class App {
+    public static void main(String[] args) {
+        ServiceLoader<GreetingService> loader = ServiceLoader.load(GreetingService.class);
+        for (GreetingService service : loader) {
+            service.greet();
+        }
+    }
+}
+```
+
