@@ -272,6 +272,7 @@ other_pin.set_pull(Pull::Down).unwrap(); // pull-down configuration
 pin.into_output_od().unwrap();
 PinDriver::output_od(peripherals.pins.gpio1).unwrap(); // alternative
 
+
 /*
    Configure interrupt type (input pins)
    - Edge-Triggered: Detects rising, falling, or both edges.
@@ -514,6 +515,8 @@ timer.set_counter(0_u64).unwrap();
 // Set timer to generate an alarm when the count reaches 1000
 
 timer.set_alarm(1000_u64).unwrap();
+
+
 
 // Enable the alarm to occur
 
