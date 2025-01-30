@@ -3822,7 +3822,7 @@ public class GroupEmployees {
         );
 
         Map<String, List<Employee>> grouped = employees.stream()
-                                                       .collect(Collectors.groupingBy(e -> e.department));
+                .collect(Collectors.groupingBy(e -> e.department));
 
         grouped.forEach((dept, empList) -> {
             System.out.println(dept + ":");
@@ -4085,7 +4085,8 @@ public class OptionalMapFlatMap {
         length.ifPresent(l -> System.out.println("Length: " + l));
 
         // Using flatMap to create an Optional description
-        Optional<String> description = optionalString.flatMap(s -> Optional.of("Length is " + s.length()));
+        Optional<String> description = optionalString
+                .flatMap(s -> Optional.of("Length is " + s.length()));
         description.ifPresent(System.out::println);
     }
 }
@@ -4749,7 +4750,8 @@ public class VirtualThreadExecutorExample {
         for (int i = 1; i <= 5; i++) {
             final int taskNumber = i;
             executor.submit(() -> {
-                System.out.println("Executing Task " + taskNumber + " on " + Thread.currentThread());
+                System.out.println("Executing Task " + taskNumber + " on " 
+                        + Thread.currentThread());
             });
         }
 
