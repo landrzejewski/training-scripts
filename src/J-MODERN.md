@@ -180,8 +180,7 @@ Choosing the right Java Development Kit (JDK) implementation and version is cruc
 
 #### Understanding JDK Implementations
 
-Several JDK implementations are available, each with its own set of features, licensing models, and support options. 
-The primary implementations include:
+Several JDK implementations are available, each with its own set of features, licensing models, and support options:
 
 - Oracle JDK
     - Description: The original JDK provided by Oracle, historically the standard for Java development.
@@ -2931,13 +2930,15 @@ Date = 4
 #### Explanation of the Example
 
 In the Traditional Collections Example, different `Set` implementations (`HashSet`, `LinkedHashSet`, and `TreeSet`) are used to demonstrate varying ordering behaviors:
+
 - `HashSet` does not guarantee any specific order of elements.
 - `LinkedHashSet` maintains elements in the order they were inserted.
 - `TreeSet` sorts elements based on their natural ordering or a provided comparator.
 
 While these collections provide flexibility, choosing the appropriate implementation based on ordering requirements can lead to confusion and increased complexity, especially in large codebases where consistency is crucial.
 
-In contrast, the Sequenced Collections Example introduces `SequencedSet`, `SequencedList`, and `SequencedMap` interfaces, along with their corresponding implementations (`SequencedHashSet`, `SequencedArrayList`, and `SequencedHashMap`). These sequenced collections ensure that elements maintain a defined encounter order:
+In contrast, the Sequenced Collections Example introduces `SequencedSet`, `SequencedList`, and `SequencedMap` interfaces, along with their corresponding implementations. These sequenced collections ensure that elements maintain a defined encounter order:
+
 - `SequencedHashSet` extends `LinkedHashSet`, preserving insertion order.
 - `SequencedArrayList` extends `ArrayList`, which inherently maintains order.
 - `SequencedHashMap` extends `LinkedHashMap`, preserving the order of key-value pairs as they were inserted.
@@ -2947,7 +2948,7 @@ By using sequenced collections, developers can consistently rely on the defined 
 #### Benefits of Sequenced Collections
 
 1. Consistent Ordering Semantics: Provides a unified approach to maintaining element order across different collection types, reducing confusion and errors.
-2. Enhanced Readability: Makes the intention of preserving order explicit through interface naming (`SequencedSet`, `SequencedList`, `SequencedMap`), improving code clarity.
+2. Enhanced Readability: Makes the intention of preserving order explicit through interface naming, improving code clarity.
 3. Simplified Collection Selection: Eliminates the need to choose specific collection implementations based solely on ordering requirements, streamlining development.
 4. Improved Interoperability: Facilitates smoother data transformations and integrations by ensuring consistent ordering semantics across different parts of an application.
 5. Reduced Boilerplate: Minimizes the need for manual checks or additional configurations to maintain element order, leading to cleaner and more maintainable code.
@@ -3033,7 +3034,7 @@ public final class Motorcycle implements Vehicle {
     }
 }
 
-// Attempting to implement Vehicle outside the permitted classes will result in a compile-time error
+// Attempting to implement Vehicle outside the permitted classes will result in an error
 // public class Bicycle implements Vehicle { // Compilation Error
 //     @Override
 //     public void drive() {
@@ -3079,163 +3080,6 @@ In the Refined Sealed Interfaces example, the `Vehicle` interface is declared as
 10. Enhanced API Design: Promotes the creation of APIs that leverage pattern matching and controlled type hierarchies, leading to more robust and predictable interfaces.
 
 Enhanced `switch` expressions and sealed interfaces significantly improve Java's capabilities in handling complex conditional logic and type hierarchies. By providing more expressive and controlled constructs, these features enable developers to write more efficient, readable, and maintainable code, aligning Java with modern programming standards and practices.
-
-## Enhanced Pattern Matching and Type Inference
-
-Enhanced Pattern Matching and Type Inference are pivotal advancements in Java 21, further refining the language's capabilities to handle complex data structures and reduce boilerplate code. These enhancements expand the scope of pattern matching beyond basic types, allowing developers to work with more intricate and nested patterns seamlessly. Concurrently, improved type inference mechanisms minimize the need for explicit type declarations, promoting cleaner and more readable code. Together, these features empower developers to write more expressive, concise, and maintainable Java applications.
-
-#### Description of the Change
-
-Pattern Matching in Java has evolved significantly, moving beyond simple type checks to support more sophisticated and nested patterns. This progression allows developers to deconstruct objects, extract their components, and apply multiple conditions within a single pattern. Enhanced pattern matching integrates seamlessly with other Java features such as Records, Sealed Classes, and Virtual Threads, enabling more powerful and type-safe conditional logic.
-
-Type Inference has also seen substantial improvements in Java 21. Building upon the introduction of the `var` keyword in Java 10, the type inference mechanism has become more intelligent and context-aware. These enhancements reduce the necessity for explicit type declarations, allowing the compiler to deduce types in more complex scenarios. This results in more concise code without sacrificing type safety, making Java codebases cleaner and easier to maintain.
-
-#### Code Examples
-
-*Before Java 21 (Basic Pattern Matching and Explicit Type Declarations):*
-
-```java
-public class BasicPatternMatchingExample {
-    public static void main(String[] args) {
-        Object obj = new Person("Alice", 30);
-        
-        if (obj instanceof Person) {
-            Person person = (Person) obj;
-            System.out.println(person.getName() + " is " + person.getAge() + " years old.");
-        } else {
-            System.out.println("Unknown object type.");
-        }
-    }
-}
-
-class Person {
-    private final String name;
-    private final int age;
-    
-    public Person(String name, int age) {
-        this.name = name;
-        this.age = age;
-    }
-    
-    public String getName() { return name; }
-    public int getAge() { return age; }
-}
-```
-
-*Output:*
-```
-Alice is 30 years old.
-```
-
-*With Java 21 Enhanced Pattern Matching and Type Inference:*
-
-```java
-public class EnhancedPatternMatchingExample {
-    public static void main(String[] args) {
-        Object obj = new Person("Alice", 30);
-        
-        if (obj instanceof Person(String name, int age)) {
-            System.out.println(name + " is " + age + " years old.");
-        } else {
-            System.out.println("Unknown object type.");
-        }
-    }
-}
-
-record Person(String name, int age) {}
-```
-
-*Output:*
-```
-Alice is 30 years old.
-```
-
-*Using Nested Pattern Matching and Type Inference:*
-
-```java
-public class NestedPatternMatchingExample {
-    public static void main(String[] args) {
-        Object obj = new Rectangle(new Point(5, 10), 20, 30);
-        
-        String description = switch (obj) {
-            case Rectangle(Point(int x, int y), int length, int width) ->
-                "Rectangle at (" + x + ", " + y + ") with length " + length + " and width " + width;
-            case Circle(Point(int x, int y), double radius) ->
-                "Circle at (" + x + ", " + y + ") with radius " + radius;
-            default -> "Unknown shape";
-        };
-        
-        System.out.println(description);
-    }
-}
-
-record Point(int x, int y) {}
-record Rectangle(Point topLeft, int length, int width) {}
-record Circle(Point center, double radius) {}
-```
-
-*Output:*
-```
-Rectangle at (5, 10) with length 20 and width 30
-```
-
-*Leveraging Type Inference with `var` in Pattern Matching:*
-
-```java
-public class TypeInferenceExample {
-    public static void main(String[] args) {
-        Object obj = new Circle(new Point(7, 14), 15.5);
-        
-        if (obj instanceof Circle var circle) {
-            System.out.println("Circle with center at (" + circle.center().x() + ", "
-                    + circle.center().y() + ") and radius " + circle.radius());
-        } else {
-            System.out.println("Not a circle.");
-        }
-    }
-}
-
-record Point(int x, int y) {}
-record Circle(Point center, double radius) {}
-```
-
-*Output:*
-```
-Circle with center at (7, 14) and radius 15.5
-```
-
-#### Explanation of the Examples
-
-1. Basic Pattern Matching and Explicit Type Declarations:
-
-   In the Traditional example, the `instanceof` operator is used to check if `obj` is an instance of `Person`. If true, an explicit cast is performed to convert `obj` to a `Person` type, allowing access to its methods. This approach requires separate lines for type checking and casting, resulting in more verbose code.
-
-2. Enhanced Pattern Matching and Type Inference:
-
-   The Enhanced example leverages Java 21's pattern matching capabilities by deconstructing the `Person` record directly within the `instanceof` check. The syntax `instanceof Person(String name, int age)` simultaneously checks the type and extracts the `name` and `age` components into local variables. This eliminates the need for explicit casting and accessor method calls, making the code more concise and readable.
-
-3. Nested Pattern Matching and Type Inference:
-
-   The Nested Pattern Matching example demonstrates the ability to handle more complex and nested patterns within a `switch` expression. By matching against specific record types (`Rectangle` and `Circle`) and deconstructing their nested components (`Point`), the code efficiently extracts relevant data without additional casting or accessor methods. This showcases the power of enhanced pattern matching in handling intricate data structures seamlessly.
-
-4. Type Inference with `var` in Pattern Matching:
-
-   In the Type Inference example, the `var` keyword is used within the `instanceof` pattern to implicitly declare the `circle` variable. This reduces the need for explicit type declarations, further streamlining the code. The compiler infers the type of `circle` based on the matched pattern, enhancing code brevity while maintaining type safety.
-
-#### Benefits of Enhanced Pattern Matching and Type Inference
-
-1. Conciseness: Combines type checking and variable extraction into single statements, reducing the overall amount of code required.
-2. Readability: Enhances the clarity of conditional logic by making patterns and data extraction explicit and inline.
-3. Reduced Boilerplate: Eliminates the need for repetitive `instanceof` checks and explicit casting, leading to cleaner codebases.
-4. Type Safety: Ensures that variables are only accessible within the scope where their types are guaranteed, minimizing runtime errors.
-5. Enhanced Expressiveness: Allows for more complex and descriptive patterns, enabling developers to handle intricate data structures elegantly.
-6. Improved Maintainability: Simplifies code maintenance by centralizing pattern definitions and reducing the likelihood of casting-related bugs.
-7. Seamless Integration with Records: Works harmoniously with Java Records, enabling efficient deconstruction and manipulation of immutable data carriers.
-8. Enhanced Type Inference: Reduces the cognitive load on developers by allowing the compiler to deduce types in more complex scenarios, promoting cleaner and more readable code.
-9. Facilitates Functional Programming Styles: Aligns with declarative programming paradigms, enabling more expressive and functional-style code constructs.
-10. Future-Proofing: Positions Java to better handle advanced pattern matching scenarios, ensuring the language remains modern and capable of addressing evolving programming needs.
-
-Enhanced Pattern Matching and Type Inference significantly elevate Java's ability to handle complex data-oriented queries and reduce boilerplate code. By enabling more expressive and type-safe conditional logic, these features contribute to the development of cleaner, more maintainable, and robust Java applications.
 
 ## Modules (Project Jigsaw)
 
@@ -3329,7 +3173,7 @@ public class MainApp {
 
 3. Using Modules in an Application:
 
-    - The `com.example.application` module declares dependencies on both `com.example.math` and `java.logging`.
+    - This module declares dependencies on both `com.example.math` and `java.logging`.
     - In the `MainApp` class, an instance of `Calculator` is created and used to perform an addition operation. The result is then logged using Java's logging framework.
 
 4. Encapsulation and Dependency Management:
@@ -4153,7 +3997,7 @@ public class DateDifference {
         LocalDate endDate = LocalDate.of(2025, 12, 31);
         
         Period period = Period.between(startDate, endDate);
-        int days = period.getDays() + period.getMonths() * 30 + period.getYears() * 365; // Approximation
+        int days = period.getDays() + period.getMonths() * 30 + period.getYears() * 365;
         System.out.println("Difference in days: " + days);
     }
 }
@@ -4170,11 +4014,13 @@ import java.time.format.DateTimeFormatter;
 public class ZonedDateTimeExample {
     public static void main(String[] args) {
         ZonedDateTime parisTime = ZonedDateTime.now(ZoneId.of("Europe/Paris"));
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+        DateTimeFormatter formatter = DateTimeFormatter
+                .ofPattern("yyyy-MM-dd HH:mm:ss z");
         
         System.out.println("Paris Time: " + parisTime.format(formatter));
         
-        ZonedDateTime newYorkTime = parisTime.withZoneSameInstant(ZoneId.of("America/New_York"));
+        ZonedDateTime newYorkTime = parisTime
+                .withZoneSameInstant(ZoneId.of("America/New_York"));
         System.out.println("New York Time: " + newYorkTime.format(formatter));
     }
 }
@@ -4575,9 +4421,9 @@ public class BookCollectionExample {
 
         String targetAuthor = "George Orwell";
         List<String> titlesByAuthor = books.stream()
-                                           .filter(book -> book.author().equals(targetAuthor))
-                                           .map(Book::title)
-                                           .collect(Collectors.toList());
+                         .filter(book -> book.author().equals(targetAuthor))
+                         .map(Book::title)
+                         .collect(Collectors.toList());
 
         System.out.println("Books by " + targetAuthor + ": " + titlesByAuthor);
     }
@@ -4795,7 +4641,7 @@ import java.io.IOException;
 public class VirtualThreadFileRead {
     public static void main(String[] args) {
         Thread vt = Thread.startVirtualThread(() -> {
-            try (BufferedReader reader = new BufferedReader(new FileReader("sample.txt"))) {
+            try (BufferedReader reader = new BufferedReader(new FileReader("file.txt"))) {
                 String firstLine = reader.readLine();
                 System.out.println("First line: " + firstLine);
             } catch (IOException e) {
@@ -5036,7 +4882,7 @@ public final class OptionExample {
             return isEmpty() ? other : get();
         }
 
-        default <R> Option<R> map(java.util.function.Function<? super T, ? extends R> mapper) {
+        default <R> Option<R> map(Function<? super T, ? extends R> mapper) {
             return isEmpty() ? none() : some(mapper.apply(get()));
         }
 
@@ -5082,7 +4928,8 @@ public final class OptionExample {
 
         Option<String> noName = Option.none();
         System.out.println("noName isEmpty? " + noName.isEmpty());
-        System.out.println("noName getOrElse(\"Unknown\"): " + noName.getOrElse("Unknown"));
+        System.out.println("noName getOrElse(\"Unknown\"): "
+                + noName.getOrElse("Unknown"));
 
         // Using map:
         Option<Integer> maybeLength = maybeName.map(String::length);
@@ -5104,7 +4951,7 @@ public final class ResultExample {
         }
         R unwrap();
         L unwrapErr();
-        default <U> Result<L, U> map(java.util.function.Function<? super R, ? extends U> mapper) {
+        default <U> Result<L, U> map(Function<? super R, ? extends U> mapper) {
             if (isOk()) {
                 return Result.ok(mapper.apply(unwrap()));
             } else {
@@ -5199,7 +5046,8 @@ public final class ResultExample {
         System.out.println("Handled error: " + handledError);
 
         Result<String, Integer> defaultResult = failure.orElse(divide(100, 5));
-        System.out.println("Default result (failure.orElse(divide(100, 5))): " + defaultResult);
+        System.out.println("Default result (failure.orElse(divide(100, 5))): "
+                + defaultResult);
     }
 
     public static Result<String, Integer> divide(int numerator, int denominator) {

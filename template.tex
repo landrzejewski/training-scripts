@@ -1,4 +1,5 @@
 \documentclass[10pt,openany,oneside]{book}
+\usepackage{cmap}
 
 % Prevent \cleardoublepage from inserting blank pages
 \let\cleardoublepage\clearpage
@@ -7,9 +8,13 @@
 \usepackage{fontspec}
 \defaultfontfeatures{Ligatures=TeX, Scale=MatchLowercase}
 \setmainfont{Fira Sans}
-\setmonofont{DejaVu Sans Mono}[
-  Ligatures=NoCommon
+\setmonofont{Latin Modern Mono}[
+  Ligatures=NoCommon,
+  Mapping=,
 ]
+
+% Ensure straight quotes in verbatim environments
+\usepackage{upquote}
 
 % Page geometry
 \usepackage{geometry}
@@ -71,7 +76,6 @@ $endif$
 \title{$title$}
 \author{$author$}
 \date{$date$}
-
 
 \begin{document}
 
