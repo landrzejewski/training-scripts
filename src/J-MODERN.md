@@ -1737,7 +1737,8 @@ public class WebSocketExample {
 
         // Build the WebSocket
         WebSocket webSocket = client.newWebSocketBuilder()
-                .buildAsync(URI.create("wss://echo.websocket.org"), new WebSocket.Listener() {
+                .buildAsync(URI.create("wss://echo.websocket.org"), 
+                 new WebSocket.Listener() {
                     @Override
                     public CompletionStage<?> onText(WebSocket webSocket, 
                                                      CharSequence data, boolean last) {
@@ -1900,8 +1901,7 @@ public final class ColoredSquare extends Square {
     }
 }
 
-// Attempting to extend Shape outside the permitted classes will result in a compile-time error
-// public class Triangle extends Shape { // Compilation Error
+// Attempting to extend Shape outside the permitted classes will result in a compile-time
 //     @Override
 //     public void draw() {
 //         System.out.println("Drawing a triangle.");
@@ -2483,8 +2483,10 @@ public class SwitchRecordPatternExample {
 
         String description = switch (shape) {
             case Circle(double r) -> "Circle with radius " + r;
-            case Rectangle(double l, double w) -> "Rectangle with length " + l + " and width " + w;
-            case Triangle(double b, double h) -> "Triangle with base " + b + " and height " + h;
+            case Rectangle(double l, double w) -> "Rectangle with length "
+                    + l + " and width " + w;
+            case Triangle(double b, double h) -> "Triangle with base " 
+                    + b + " and height " + h;
             default -> "Unknown shape";
         };
 
@@ -2704,7 +2706,8 @@ public class VirtualThreadServer {
     private static void handleClient(Socket clientSocket) {
         try {
             // Simulate processing
-            System.out.println("Handling client " + clientSocket.getRemoteSocketAddress());
+            System.out.println("Handling client "
+                    + clientSocket.getRemoteSocketAddress());
             Thread.sleep(1000); // Simulate blocking I/O
             clientSocket.close();
         } catch (InterruptedException | IOException e) {
@@ -2856,7 +2859,7 @@ import java.util.*;
 public class SequencedCollectionsExample {
     public static void main(String[] args) {
         // Using SequencedSet interface with a specific implementation
-        SequencedSet<String> sequencedSet = new SequencedHashSet<>();
+        SequencedSet<String> sequencedSet = new LinkedHashSet<>();
         sequencedSet.add("Apple");
         sequencedSet.add("Banana");
         sequencedSet.add("Cherry");
@@ -2868,7 +2871,7 @@ public class SequencedCollectionsExample {
         }
 
         // Using SequencedList interface with a specific implementation
-        SequencedList<String> sequencedList = new SequencedArrayList<>();
+        SequencedList<String> sequencedList = new ArrayList<>();
         sequencedList.add("Elderberry");
         sequencedList.add("Fig");
         sequencedList.add("Grape");
@@ -2880,7 +2883,7 @@ public class SequencedCollectionsExample {
         }
 
         // Using SequencedMap interface with a specific implementation
-        SequencedMap<String, Integer> sequencedMap = new SequencedHashMap<>();
+        SequencedMap<String, Integer> sequencedMap = new LinkedHashMap<>();
         sequencedMap.put("Apple", 1);
         sequencedMap.put("Banana", 2);
         sequencedMap.put("Cherry", 3);
@@ -3695,6 +3698,26 @@ Create two modules: `com.example.utils` that exports a package `com.example.util
 
 Task Description:  
 Create a module `com.example.service` that provides an implementation of a `com.example.api.GreetingService` interface. Then, create a module `com.example.client` that consumes the `GreetingService` using the `uses` and `provides` directives.
+
+### Project
+
+#### Smart Task Management System
+
+Overview: Develop a comprehensive Smart Task Management System that allows users to create, assign, 
+track, and manage tasks efficiently. This application will leverage numerous modern Java features to 
+ensure scalability, maintainability, and performance. The system will be modular, supporting future 
+enhancements and integrations.
+
+Key Features and Java Features Integration:
+
+- Sealed Classes and Interfaces: Define a sealed User interface with permitted subclasses like Admin, Manager, and Employee.
+- Records: Use records to represent immutable user data.
+- Optional Class: Handle optional user attributes such as middle names or secondary emails.
+- Pattern Matching for instanceof: Implement role-based access control using pattern matching.
+- Lambda Expressions & Functional Interfaces: Utilize lambdas for filtering and assigning tasks based on user roles or availability.
+- Stream API & Collectors: Process and collect task data, generate reports, and perform analytics.
+- Method References: Simplify stream operations with method references.
+- Enhanced Switch Statements: Determine task priority or status using enhanced switch expressions.
 
 ## Solutions
 
@@ -4992,6 +5015,206 @@ public class App {
         ServiceLoader<GreetingService> loader = ServiceLoader.load(GreetingService.class);
         for (GreetingService service : loader) {
             service.greet();
+        }
+    }
+}
+```
+
+## Additional examples
+
+```java
+public final class OptionExample {
+
+    public sealed interface Option<T> 
+        permits OptionExample.Some, OptionExample.None {
+
+        boolean isEmpty();
+
+        T get();
+
+        default T getOrElse(T other) {
+            return isEmpty() ? other : get();
+        }
+
+        default <R> Option<R> map(java.util.function.Function<? super T, ? extends R> mapper) {
+            return isEmpty() ? none() : some(mapper.apply(get()));
+        }
+
+        static <T> Option<T> some(T value) {
+            return new Some<>(value);
+        }
+
+        static <T> Option<T> none() {
+            return new None<>();
+        }
+    }
+    
+    public static record Some<T>(T value) implements Option<T> {
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public T get() {
+            return value;
+        }
+    }
+
+    public static final class None<T> implements Option<T> {
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public T get() {
+            throw new java.util.NoSuchElementException("No value present in None");
+        }
+    }
+
+    public static void main(String[] args) {
+        Option<String> maybeName = Option.some("Alice");
+        System.out.println("maybeName isEmpty? " + maybeName.isEmpty()); 
+        System.out.println("maybeName get: " + maybeName.get());
+
+        Option<String> noName = Option.none();
+        System.out.println("noName isEmpty? " + noName.isEmpty());
+        System.out.println("noName getOrElse(\"Unknown\"): " + noName.getOrElse("Unknown"));
+
+        // Using map:
+        Option<Integer> maybeLength = maybeName.map(String::length);
+        System.out.println("maybeLength getOrElse(0): " + maybeLength.getOrElse(0));
+
+        Option<Integer> noneLength = noName.map(String::length);
+        System.out.println("noneLength isEmpty? " + noneLength.isEmpty());
+    }
+}
+```
+
+```java
+public final class ResultExample {
+
+    public sealed interface Result<L, R> permits Ok, Err {
+        boolean isOk();
+        default boolean isErr() {
+            return !isOk();
+        }
+        R unwrap();
+        L unwrapErr();
+        default <U> Result<L, U> map(java.util.function.Function<? super R, ? extends U> mapper) {
+            if (isOk()) {
+                return Result.ok(mapper.apply(unwrap()));
+            } else {
+                return Result.err(unwrapErr());
+            }
+        }
+        default <M> Result<M, R> mapErr(Function<? super L, ? extends M> mapper) {
+            if (isErr()) {
+                return Result.err(mapper.apply(unwrapErr()));
+            } else {
+                return Result.ok(unwrap());
+            }
+        }
+        default <U> Result<L, U> flatMap(Function<? super R, Result<L, U>> mapper) {
+            if (isOk()) {
+                return mapper.apply(unwrap());
+            } else {
+                return Result.err(unwrapErr());
+            }
+        }
+        default Result<L, R> orElse(Result<L, R> other) {
+            return isOk() ? this : other;
+        }
+        static <L, R> Result<L, R> ok(R value) {
+            return new Ok<>(value);
+        }
+        static <L, R> Result<L, R> err(L error) {
+            return new Err<>(error);
+        }
+    }
+
+    public static final class Ok<L, R> implements Result<L, R> {
+        private final R value;
+        public Ok(R value) {
+            this.value = value;
+        }
+        @Override
+        public boolean isOk() {
+            return true;
+        }
+        @Override
+        public R unwrap() {
+            return value;
+        }
+        @Override
+        public L unwrapErr() {
+            throw new IllegalStateException("Called unwrapErr() on an Ok value");
+        }
+        @Override
+        public String toString() {
+            return "Ok(" + value + ")";
+        }
+    }
+
+    public static final class Err<L, R> implements Result<L, R> {
+        private final L error;
+        public Err(L error) {
+            this.error = error;
+        }
+        @Override
+        public boolean isOk() {
+            return false;
+        }
+        @Override
+        public R unwrap() {
+            throw new IllegalStateException("Called unwrap() on an Err value");
+        }
+        @Override
+        public L unwrapErr() {
+            return error;
+        }
+        @Override
+        public String toString() {
+            return "Err(" + error + ")";
+        }
+    }
+
+    public static void main(String[] args) {
+        Result<String, Integer> success = divide(10, 2);
+        handleResult(success);
+
+        Result<String, Integer> failure = divide(10, 0);
+        handleResult(failure);
+
+        Result<String, Integer> computation = divide(20, 4)
+                .map(result -> result * 2)
+                .flatMap(res -> divide(res, 2));
+        System.out.println("Chained computation: " + computation);
+
+        Result<String, Integer> handledError = divide(10, 0)
+                .mapErr(err -> "Cannot divide by zero");
+        System.out.println("Handled error: " + handledError);
+
+        Result<String, Integer> defaultResult = failure.orElse(divide(100, 5));
+        System.out.println("Default result (failure.orElse(divide(100, 5))): " + defaultResult);
+    }
+
+    public static Result<String, Integer> divide(int numerator, int denominator) {
+        if (denominator == 0) {
+            return Result.err("Division by zero");
+        } else {
+            return Result.ok(numerator / denominator);
+        }
+    }
+
+    public static <L, R> void handleResult(Result<L, R> result) {
+        if (result.isOk()) {
+            System.out.println("Success! Result is: " + result.unwrap());
+        } else {
+            System.out.println("Error: " + result.unwrapErr());
         }
     }
 }
