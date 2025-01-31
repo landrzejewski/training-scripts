@@ -5068,3 +5068,794 @@ public final class ResultExample {
 }
 ```
 
+# Migration tools
+
+## Java Dependency Analysis Tool
+
+`jeps` is a powerful utility bundled with the JDK that helps analyze Java class files to determine dependencies on packages, modules, and classes. It's especially useful during migration to identify dependencies that might be problematic when upgrading Java versions, such as reliance on internal APIs or deprecated packages.
+
+### Basic Usage
+
+### Analyzing a Single JAR File
+
+To analyze the dependencies of a single JAR file, use the following command:
+
+```bash
+jdeps path/to/your-app.jar
+```
+
+Example:
+
+Suppose you have a JAR file named `myapp.jar` located in the `target` directory.
+
+```bash
+jdeps target/myapp.jar
+```
+
+Sample Output:
+```
+myapp.jar -> java.base
+myapp.jar -> java.logging
+myapp.jar -> com.fasterxml.jackson.databind
+```
+
+Explanation:
+- `myapp.jar -> java.base`: Indicates that `myapp.jar` depends on the `java.base` module.
+- `myapp.jar -> java.logging`: Shows a dependency on the `java.logging` module.
+- `myapp.jar -> com.fasterxml.jackson.databind`: Indicates a dependency on an external library.
+
+### Analyzing Individual Class Files
+
+You can also analyze individual class files:
+
+```bash
+jdeps path/to/MyClass.class
+```
+
+### Analyzing Module Dependencies
+
+If your project uses Java modules (introduced in Java 9), you can analyze module dependencies.
+
+### Basic Module Dependency Analysis
+
+```bash
+jdeps --module-path path/to/modules -s path/to/your-app.jar
+```
+
+Options:
+- `--module-path`: Specifies the module path for resolving dependencies.
+- `-s` or `--summary`: Provides a summary of module dependencies.
+
+Example:
+
+```bash
+jdeps --module-path libs/ -s target/myapp.jar
+```
+
+Sample Output:
+```
+myapp.jar -> java.base
+myapp.jar -> java.logging
+myapp.jar -> com.fasterxml.jackson.databind
+```
+
+### Detailed Module Dependency Tree
+
+To get a detailed tree of module dependencies:
+
+```bash
+jdeps --module-path libs/ --print-module-deps -s target/myapp.jar
+```
+
+Options:
+- `--print-module-deps`: Prints the module dependencies in a format suitable for the `--add-modules` option.
+
+Sample Output:
+```
+java.base,java.logging,com.fasterxml.jackson.databind
+```
+
+### Detecting Dependencies on Internal APIs
+
+One of the critical uses of `jdeps` is to identify if your application relies on internal or unsupported APIs, which can cause issues during migration.
+
+### Scanning for JDK Internal APIs
+
+Use the `--jdk-internals` flag to identify dependencies on JDK internal APIs.
+
+```bash
+jdeps --jdk-internals target/myapp.jar
+```
+
+Sample Output:
+```
+myapp.jar -> jdk.internal.reflect
+```
+
+Explanation:
+- `jdk.internal.reflect`: Indicates that `myapp.jar` is using internal reflection APIs, which are not intended for public use and may be removed or restricted in future Java versions.
+
+### Using the `--ignore-missing-deps` Flag
+
+If some dependencies are missing or not resolvable, you can use `--ignore-missing-deps` to suppress related warnings.
+
+```bash
+jdeps --jdk-internals --ignore-missing-deps target/myapp.jar
+```
+
+### Generating Dependency Reports
+
+For better visualization and reporting, you can generate output in various formats.
+
+### Generating a Graphviz DOT File
+
+You can generate a DOT file compatible with Graphviz to visualize dependencies.
+
+```bash
+jdeps -dotoutput out/ target/myapp.jar
+```
+
+Options:
+- `-dotoutput`: Specifies the directory where DOT files will be generated.
+
+Steps to Visualize:
+
+1. Generate DOT Files:
+
+   ```bash
+   jdeps -dotoutput out/ target/myapp.jar
+   ```
+
+2. Install Graphviz (if not already installed):
+
+  - macOS:
+    ```bash
+    brew install graphviz
+    ```
+  - Ubuntu/Debian:
+    ```bash
+    sudo apt-get install graphviz
+    ```
+  - Windows:
+    - Download from [Graphviz Downloads](https://graphviz.org/download/) and install.
+
+3. Generate a PNG Image from DOT File:
+
+   ```bash
+   dot -Tpng out/myapp.jar.dot -o myapp-dependencies.png
+   ```
+
+4. View the Image:
+
+   Open `myapp-dependencies.png` using your preferred image viewer.
+
+### Exporting to JSON Format
+
+While `jdeps` does not natively support JSON output, you can combine it with other tools or scripts to parse and convert the output into JSON for integration with other systems.
+
+Example Using `jdeps` with `jq`:
+
+```bash
+jdeps target/myapp.jar | jq -R -s 'split("\n") 
+  | map(select(length > 0)) | map(split(" -> ")) 
+  | map({module: .[0], dependencies: .[1:]})' > dependencies.json
+```
+
+Explanation:
+- `-R -s`: Reads input as raw strings and slurps all lines into a single array.
+- `split("\n")`: Splits the input into lines.
+- `map(select(length > 0))`: Filters out empty lines.
+- `map(split(" -> "))`: Splits each line into source and dependencies.
+- `map({module: .[0], dependencies: .[1:]})`: Structures the data into JSON objects.
+
+### Using `jdeps` with Maven Projects
+
+Integrating `jdeps` into Maven projects can automate dependency analysis as part of your build process.
+
+### Step 1: Ensure Your Project is Compiled
+
+First, compile your Maven project to generate the JAR file.
+
+```bash
+mvn clean package
+```
+
+Assumption: The resulting JAR is located at `target/myapp.jar`.
+
+### Step 2: Run `jdeps` on the Generated JAR
+
+```bash
+jdeps target/myapp.jar
+```
+
+### Step 3: Integrate `jdeps` into Maven's Build Lifecycle (Optional)
+
+You can create a Maven plugin execution to run `jdeps` automatically during the build.
+
+Example:
+
+Add the following plugin configuration to your `pom.xml`:
+
+```xml
+<build>
+    <plugins>
+        <!-- Other plugins -->
+
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+                <execution>
+                    <id>analyze-dependencies</id>
+                    <phase>verify</phase>
+                    <goals>
+                        <goal>exec</goal>
+                    </goals>
+                    <configuration>
+                        <executable>jdeps</executable>
+                        <arguments>
+                            <argument>-s</argument>
+                            <argument>${project.build.directory}/
+                              ${project.build.finalName}.jar</argument>
+                        </arguments>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+Run the Maven Build:
+
+```bash
+mvn clean verify
+```
+
+Outcome:
+- `jdeps` will execute during the `verify` phase, and its output will be visible in the build logs.
+
+### Using `jdeps` with Gradle Projects
+
+Similarly, you can integrate `jdeps` into Gradle projects.
+
+### Step 1: Ensure Your Project is Compiled
+
+First, build your Gradle project to generate the JAR file.
+
+```bash
+gradle clean build
+```
+
+Assumption: The resulting JAR is located at `build/libs/myapp.jar`.
+
+### Step 2: Run `jdeps` on the Generated JAR
+
+```bash
+jdeps build/libs/myapp.jar
+```
+
+### Step 3: Integrate `jdeps` into Gradle's Build Lifecycle (Optional)
+
+You can create a custom Gradle task to run `jdeps` automatically.
+
+Example:
+
+Add the following task to your `build.gradle`:
+
+```groovy
+task analyzeDependencies(type: Exec) {
+    description = 'Analyzes dependencies using jdeps'
+    group = 'Verification'
+
+    def jarFile = "${buildDir}/libs/${project.name}.jar"
+
+    commandLine 'jdeps', '-s', jarFile
+
+    // Ensure the JAR is built before running `jdeps`
+    dependsOn build
+}
+
+check.dependsOn analyzeDependencies
+```
+
+Explanation:
+- `type: Exec`: Defines the task as an execution of a system command.
+- `commandLine 'jdeps', '-s', jarFile`: Specifies the `jdeps` command with the `-s` option for summary.
+- `dependsOn build`: Ensures the JAR is built before running `jdeps`.
+- `check.dependsOn analyzeDependencies`: Integrates the task into the `check` lifecycle phase.
+
+Run the Gradle Build:
+
+```bash
+gradle clean check
+```
+
+Outcome:
+- `jdeps` will execute during the `check` phase, and its output will appear in the build logs.
+
+### Interpreting `jdeps` Output
+
+Understanding the output of `jdeps` is crucial for identifying and addressing dependency issues.
+
+### Basic Output Structure
+
+```plaintext
+myapp.jar -> java.base
+myapp.jar -> java.logging
+myapp.jar -> com.fasterxml.jackson.databind
+```
+
+- `myapp.jar`: The analyzed module or JAR.
+- `->`: Indicates a dependency arrow.
+- `java.base`, `java.logging`: Java modules your application depends on.
+- `com.fasterxml.jackson.databind`: External libraries or modules.
+
+### Common Indicators in Output
+
+1. Standard Java Modules:
+  - Dependencies on modules like `java.base`, `java.sql`, `java.xml`, etc., are standard and typically not problematic.
+
+2. Internal or Unsupported APIs:
+  - Dependencies starting with `jdk.internal` or other internal namespaces indicate reliance on unsupported APIs, which can lead to issues in future Java versions.
+
+   Example:
+   ```
+   myapp.jar -> jdk.internal.reflect
+   ```
+
+3. External Libraries:
+  - Dependencies on third-party libraries, such as `com.fasterxml.jackson.databind`, indicate external dependencies that should be verified for Java 21 compatibility.
+
+### Advanced Output with Packages
+
+Using the `-verbose` (`-v`) flag provides more detailed information, including package-level dependencies.
+
+```bash
+jdeps -v target/myapp.jar
+```
+
+Sample Output:
+```
+myapp.jar -> java.base
+    java.base/java.lang
+    java.base/java.util
+myapp.jar -> java.logging
+    java.logging/java.util.logging
+myapp.jar -> com.fasterxml.jackson.databind
+    com.fasterxml.jackson.databind/com.fasterxml.jackson.databind.ObjectMapper
+```
+
+Explanation:
+- Shows which specific packages within each module or library are being used.
+
+### Common Use Cases
+
+### Use Case 1: Identifying External Dependencies
+
+To list all external dependencies (excluding JDK modules):
+
+```bash
+jdeps -s target/myapp.jar | grep -v "java\."
+```
+
+Sample Output:
+```
+myapp.jar -> com.fasterxml.jackson.databind
+myapp.jar -> org.apache.commons
+```
+
+### Use Case 2: Checking for Deprecated APIs
+
+Although `jdeps` doesn't directly report deprecated APIs, you can combine it with other tools like `jdeprscan` to identify deprecated API usage.
+
+```bash
+jdeps target/myapp.jar
+jdeprscan --release 21 target/myapp.jar
+```
+
+### Use Case 3: Ensuring Modularization
+
+If you're adopting the Java Module System, ensure that your modules correctly declare dependencies.
+
+Command:
+
+```bash
+jdeps --module-path mods/ --add-modules your.module.name -s target/myapp.jar
+```
+
+### Use Case 4: Detecting Potential Migration Issues
+
+Use `jdeps` to scan for dependencies that might cause issues when migrating to Java 21, such as internal APIs or outdated libraries.
+
+### Tips and Best Practices
+
+1. Integrate Early in Migration Process: Run `jdeps` at the beginning to identify potential issues before deep diving into code changes.
+2. Automate Dependency Checks: Incorporate `jdeps` into your CI/CD pipelines to continuously monitor dependencies.
+3. Combine with Other Tools: Use `jdeps` alongside tools like `jdeprscan`, `OpenRewrite`, and static analysis tools for comprehensive migration support.
+4. Regularly Update Dependencies: Keep third-party libraries updated to versions compatible with Java 21 to minimize migration hurdles.
+5. Review and Refactor Code: Use `jdeps` insights to refactor code that relies on internal or deprecated APIs.
+6. Document Findings: Maintain records of dependency issues and resolutions to aid future maintenance and migrations.
+
+## OpenRewrite
+
+OpenRewrite is an automated refactoring tool that simplifies the process of migrating codebases by applying standardized transformations. It supports various programming languages and integrates seamlessly with popular build tools like Maven and Gradle. By leveraging a rich set of predefined recipes, developers can automate repetitive and error-prone tasks, ensuring consistency and efficiency during migrations.
+
+Key Use Cases:
+- Upgrading Java versions (e.g., Java 8 to Java 21)
+- Refactoring code to adhere to new coding standards or best practices
+- Migrating between different frameworks or libraries
+- Removing deprecated APIs and replacing them with modern alternatives
+
+Key Features
+
+- Predefined Recipes: A vast collection of community-maintained recipes for common refactoring tasks.
+- Custom Recipes: Ability to define custom transformations tailored to specific project needs.
+- Integration with Build Tools: Plugins available for Maven and Gradle to incorporate OpenRewrite into existing build pipelines.
+- Scalability: Efficiently handles large codebases with minimal performance overhead.
+- Extensibility: Supports extension through custom Java code, allowing for complex refactorings.
+
+### Installation and Setup
+
+### a. Installing OpenRewrite CLI (Optional)
+
+While OpenRewrite primarily integrates with build tools, you can also use the OpenRewrite CLI for standalone operations.
+
+1. Download OpenRewrite CLI:
+
+   Visit the [OpenRewrite Releases](https://github.com/openrewrite/rewrite/releases) page and download the latest CLI JAR file.
+
+2. Run OpenRewrite CLI:
+
+   ```bash
+   java -jar rewrite-cli-X.Y.Z.jar --help
+   ```
+
+   Replace `X.Y.Z` with the actual version number.
+
+### b. Adding OpenRewrite to Your Project
+
+#### For Maven Projects:
+
+1. Add OpenRewrite Plugin to `pom.xml`:
+
+   ```xml
+   <project>
+       <!-- ... existing configurations ... -->
+       <build>
+           <plugins>
+               <!-- ... other plugins ... -->
+               <plugin>
+                   <groupId>org.openrewrite.maven</groupId>
+                   <artifactId>rewrite-maven-plugin</artifactId>
+                   <version>4.35.0</version>
+                   <configuration>
+                       <activeRecipes>
+                           <!-- Specify recipes here -->
+                       </activeRecipes>
+                   </configuration>
+               </plugin>
+           </plugins>
+       </build>
+       <repositories>
+           <repository>
+               <id>openrewrite-maven</id>
+               <url>https://repo.maven.apache.org/maven2</url>
+           </repository>
+       </repositories>
+       <dependencies>
+           <!-- Include any additional dependencies if needed -->
+       </dependencies>
+   </project>
+   ```
+
+2. Specify Recipes:
+
+   Define the recipes you want to apply within the `<activeRecipes>` section. For example:
+
+   ```xml
+   <activeRecipes>
+       <recipe>org.openrewrite.java.cleanup.FinalizeLocalVariables</recipe>
+       <recipe>org.openrewrite.java.format.AutoFormat</recipe>
+       <!-- Add more recipes as needed -->
+   </activeRecipes>
+   ```
+
+#### For Gradle Projects:
+
+1. Apply OpenRewrite Plugin:
+
+   Add the OpenRewrite Gradle plugin to your `build.gradle`:
+
+   ```groovy
+   plugins {
+       id 'org.openrewrite.rewrite' version '4.35.0'
+   }
+   ```
+
+2. Configure OpenRewrite:
+
+   Define the recipes within the `rewrite` configuration block:
+
+   ```groovy
+   rewrite {
+       activeRecipes = [
+           'org.openrewrite.java.cleanup.FinalizeLocalVariables',
+           'org.openrewrite.java.format.AutoFormat'
+           // Add more recipes as needed
+       ]
+   }
+   ```
+
+3. Add Repositories:
+
+   Ensure Maven Central or other necessary repositories are included:
+
+   ```groovy
+   repositories {
+       mavenCentral()
+   }
+   ```
+
+### Using OpenRewrite for Migration
+
+Migrating from Java 8 to Java 21 involves several steps, including updating language features, replacing deprecated APIs, and ensuring compatibility with new frameworks or libraries. OpenRewrite simplifies this process by automating many of these transformations.
+
+### a. Applying Predefined Recipes
+
+OpenRewrite provides a variety of predefined recipes that can assist in migrating Java versions. Here's how to apply them:
+
+#### Example: Migrating to a New Java Version
+
+1. Identify Relevant Recipes:
+
+   OpenRewrite includes recipes such as:
+  - `org.openrewrite.java.migrate.java8.Java8Migration`
+  - `org.openrewrite.java.migrate.java17.Java17Migration`
+  - `org.openrewrite.java.migrate.java21.Java21Migration`
+
+2. Configure Recipes in Maven:
+
+   ```xml
+   <activeRecipes>
+       <recipe>org.openrewrite.java.migrate.java8.Java8Migration</recipe>
+       <recipe>org.openrewrite.java.migrate.java17.Java17Migration</recipe>
+       <recipe>org.openrewrite.java.migrate.java21.Java21Migration</recipe>
+   </activeRecipes>
+   ```
+
+   Note: The exact recipe names may vary. Refer to the [OpenRewrite Recipes Catalog](https://github.com/openrewrite/rewrite#available-recipes) for accurate recipe identifiers.
+
+3. Execute the Migration:
+
+   Run the OpenRewrite plugin goal to apply the recipes.
+
+   ```bash
+   mvn rewrite:run
+   ```
+
+   For Gradle:
+
+   ```bash
+   gradle rewriteRun
+   ```
+
+4. Review Changes:
+
+   After execution, OpenRewrite will have applied the specified transformations. Review the changes using your version control system to ensure correctness.
+
+### b. Creating Custom Recipes
+
+Sometimes, predefined recipes may not cover all the specific needs of your project. In such cases, you can create custom recipes.
+
+#### Steps to Create a Custom Recipe:
+
+1. Define the Recipe:
+
+   Create a YAML file (e.g., `CustomMigrationRecipe.yml`) with the desired transformations.
+
+   ```yaml
+   type: specs.openrewrite.org/v1beta/recipe
+   name: com.example.CustomMigrationRecipe
+   displayName: Custom Migration Recipe
+   description: Replaces specific deprecated methods with their modern alternatives.
+   recipeList:
+     - org.openrewrite.java.ChangeMethodName:
+         methodPattern: 'com.example.oldpackage.OldClass oldMethod(..)'
+         newMethodName: 'newMethod'
+   ```
+
+2. Add the Custom Recipe to Your Project:
+
+   Place the YAML file in a designated directory within your project (e.g., `src/main/resources/org/openrewrite/recipes/`).
+
+3. Reference the Custom Recipe in `pom.xml` or `build.gradle`:
+
+   For Maven:
+
+   ```xml
+   <activeRecipes>
+       <recipe>com.example.CustomMigrationRecipe</recipe>
+   </activeRecipes>
+   ```
+
+   For Gradle:
+
+   ```groovy
+   rewrite {
+       activeRecipes = [
+           'com.example.CustomMigrationRecipe'
+       ]
+   }
+   ```
+
+4. Execute the Migration:
+
+   ```bash
+   mvn rewrite:run
+   ```
+
+   Or for Gradle:
+
+   ```bash
+   gradle rewriteRun
+   ```
+
+5. Verify Changes:
+
+   Check the transformed code to ensure that the custom recipe has been applied correctly.
+
+### Integrating OpenRewrite with Build Tools
+
+Integrating OpenRewrite with your build tools like Maven and Gradle allows for seamless automation of the migration process within your existing development workflow.
+
+### a. Maven Integration
+
+#### Step-by-Step Guide:
+
+1. Add OpenRewrite Plugin:
+
+   Ensure the `rewrite-maven-plugin` is added to your `pom.xml` as shown earlier.
+
+2. Configure Plugin Execution:
+
+   You can configure when the plugin runs (e.g., during the `verify` phase).
+
+   ```xml
+   <plugin>
+       <groupId>org.openrewrite.maven</groupId>
+       <artifactId>rewrite-maven-plugin</artifactId>
+       <version>4.35.0</version>
+       <configuration>
+           <activeRecipes>
+               <recipe>org.openrewrite.java.migrate.java8.Java8Migration</recipe>
+               <recipe>org.openrewrite.java.migrate.java17.Java17Migration</recipe>
+               <recipe>org.openrewrite.java.migrate.java21.Java21Migration</recipe>
+           </activeRecipes>
+       </configuration>
+       <executions>
+           <execution>
+               <goals>
+                   <goal>run</goal>
+               </goals>
+               <phase>verify</phase>
+           </execution>
+       </executions>
+   </plugin>
+   ```
+
+3. Run Maven Build:
+
+   Execute the Maven build to apply the migration recipes.
+
+   ```bash
+   mvn clean verify
+   ```
+
+   Outcome:  
+   The OpenRewrite plugin will execute during the `verify` phase, applying the specified recipes to your codebase.
+
+### b. Gradle Integration
+
+#### Step-by-Step Guide:
+
+1. Apply OpenRewrite Plugin:
+
+   Ensure the OpenRewrite plugin is applied in your `build.gradle` as shown earlier.
+
+2. Configure Active Recipes:
+
+   Define the recipes within the `rewrite` block.
+
+   ```groovy
+   rewrite {
+       activeRecipes = [
+           'org.openrewrite.java.migrate.java8.Java8Migration',
+           'org.openrewrite.java.migrate.java17.Java17Migration',
+           'org.openrewrite.java.migrate.java21.Java21Migration'
+       ]
+   }
+   ```
+
+3. Run Gradle Build:
+
+   Execute the Gradle build to apply the migration recipes.
+
+   ```bash
+   gradle clean build
+   ```
+
+   Outcome:  
+   The OpenRewrite plugin will process the code during the build, applying the defined recipes.
+
+### Running OpenRewrite
+
+After configuring OpenRewrite within your project, you can execute it to perform the migration.
+
+### a. Running OpenRewrite with Maven
+
+1. Execute the Plugin:
+
+   ```bash
+   mvn rewrite:run
+   ```
+
+2. Review Changes:
+
+   OpenRewrite modifies the source code directly. Use your version control system to review and commit the changes.
+
+   ```bash
+   git status
+   git diff
+   git add .
+   git commit -m "Migrate codebase from Java 8 to Java 21 using OpenRewrite"
+   ```
+
+### b. Running OpenRewrite with Gradle
+
+1. Execute the Plugin:
+
+   ```bash
+   gradle rewriteRun
+   ```
+
+2. Review Changes:
+
+   Similar to Maven, inspect the changes using Git or your preferred version control tool.
+
+   ```bash
+   git status
+   git diff
+   git add .
+   git commit -m "Migrate codebase from Java 8 to Java 21 using OpenRewrite"
+   ```
+
+### c. Dry Run and Reporting
+
+Before applying changes, you might want to perform a dry run to see what modifications will be made.
+
+For Maven:
+
+```bash
+mvn rewrite:dryRun
+```
+
+For Gradle:
+
+```bash
+gradle rewriteDryRun
+```
+
+Outcome:  
+A report will be generated detailing the proposed changes without altering the source code. This allows for a safe review before actual modifications.
+
+### Best Practices
+
+1. Backup Before Migration: Always ensure your code is backed up or under version control before applying automated refactorings.
+2. Incremental Migration: Apply migration recipes in small, manageable batches to isolate and address issues effectively.
+3. Customize Recipes: Tailor existing recipes or create custom ones to fit the specific needs of your project.
+4. Combine with Other Tools: Use OpenRewrite in conjunction with other migration tools like `jdeps` and static analysis tools for comprehensive coverage.
+5. Maintain Documentation: Document the migration steps, decisions, and any custom recipes for future reference and onboarding.
+6. Test Thoroughly: After applying migrations, run all tests to ensure that the application behaves as expected.
+7. Stay Updated: Keep OpenRewrite and its recipes up to date to leverage the latest improvements and fixes.
