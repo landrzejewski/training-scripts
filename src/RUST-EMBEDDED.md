@@ -349,10 +349,6 @@ use esp_println::println;
 
 static G_PIN: Mutex<RefCell<Option<Input>>> = Mutex::new(RefCell::new(None));
 
-
-
-
-
 #[handler]
 fn gpio() {
     critical_section::with(|cs| {
@@ -461,8 +457,6 @@ let mut adc_pin = adc_config.enable_pin(
     pin_instance,
     Attenuation::11dB,
 );
-
-
 
 // Create ADC driver for ADC1
 
@@ -950,7 +944,8 @@ log::info!("Synchronized System Time: {:?}", current_time);
 cargo install espup
 espup install
 cat espup install >> .profile
-sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
+sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv
+     cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
 cargo install ldproxy
 cargo install esp-generate
 sudo apt install libssl-dev openssl pkg-config
@@ -987,7 +982,7 @@ In embedded Rust, when working with bindings to C libraries (such as when using 
 
 2. **What does the ```Ordering::Relaxed``` parameter mean when used with atomic types?**
 In Rust, when working with atomic types (`AtomicUsize`, `AtomicBool`, etc.), you often need to specify an ordering constraint to control how operations are synchronized across multiple threads.
-`Ordering::Relaxed` is one such ordering constraint. Using `Ordering::Relaxed` means that the operation is atomic but does not impose any synchronization guarantees beyond ensuring the operation itself is not torn or reordered within the same thread.
+`Relaxed` is one such ordering constraint. Using `Ordering::Relaxed` means that the operation is atomic but does not impose any synchronization guarantees beyond ensuring the operation itself is not torn or reordered within the same thread.
 In other words:
 
 - The operation executes atomically (i.e., it completes as a single unit).
