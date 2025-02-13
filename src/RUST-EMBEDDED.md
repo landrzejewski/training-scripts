@@ -294,10 +294,10 @@ pin.set_drive_strength(DriveStrength::I10mA).unwrap();
 
 loop {
     if pin.is_low() {
-        println!("Low!");
+        log::info!("Low!");
     }
     if pin.is_high() {
-        println!("High!");
+        log::info!("High!");
     }
 }
 
@@ -318,19 +318,18 @@ pin.set_high().unwrap(); // set pin to high
 ### Bare-metal version
 
 ```rust
-let peripherals = esp_hal::init(esp_hal::Config::default());
-let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
-let pin = Input::new(io.pins.gpio3, Pull::Up);
+let peripherals = esp_hal::init(Config::default());
+let pin = Input::new(peripherals.GPIO3, Pull::Up);
 pin.set_low();
-let other_pin = Output::new(io.pins.gpio3, Level::Low);
+let other_pin = Output::new(peripherals.GPIO3, Level::Low);
 other_pin.set_drive_strength(DriveStrength::I5mA);
 
 loop {
     if pin.is_low() {
-        println!("Low!");
+        log::info!("Low!");
     }
     if pin.is_high() {
-        println!("High!");
+        log::info!("High!");
     }
 }
 
@@ -362,13 +361,12 @@ fn gpio() {
     });
 }
 
-#[entry]
+#[main]
 fn main() -> ! {
-    let peripherals = esp_hal::init(esp_hal::Config::default());
-    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+    let peripherals = esp_hal::init(Config::default());
 
     io.set_interrupt_handler(gpio);
-    let some_pin = Input::new(io.pins.gpio0, Pull::Up);
+    let some_pin = Input::new(peripherals.GPIO0, Pull::Up);
     some_pin.listen(Event::FallingEdge);
     critical_section::with(|cs| G_PIN.borrow_ref_mut(cs).replace(some_pin));
     loop {
@@ -421,7 +419,7 @@ let adc1 = AdcDriver::new(peripherals.adc1).unwrap();
 
 let config = AdcChannelConfig {
     attenuation: DB_11,
-    calibration: true,
+    calibration: Calibration::Curve,
     resolution: Resolution::Resolution12Bit,
 };
 
@@ -451,8 +449,7 @@ let sample: u16 = channel.read_raw().unwrap();
 ### Bare-metal version
 
 ```rust
-let peripherals = esp_hal::init(esp_hal::Config::default());
-let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+let peripherals = esp_hal::init(Config::default());
 
 // Create instance for ADC configuration parameters
 
@@ -462,7 +459,7 @@ let mut adc_config = AdcConfig::new();
 
 let mut adc_pin = adc_config.enable_pin(
     pin_instance,
-    Attenuation::Attenuation11dB,
+    Attenuation::11dB,
 );
 
 
@@ -552,7 +549,7 @@ loop {
     let count = some_timer.counter().unwrap();
     // Convert to seconds
     let count_secs = count / timer_clk;
-    println!("Elapsed time in seconds is {}", count_secs);
+    log::info!("Elapsed time in seconds is {}", count_secs);
 }
 
 /*
@@ -652,7 +649,7 @@ fn main() -> ! {
         // Perform Some Operations
         // Determine Duration
         let dur = some_timer.now().duration_since_epoch().to_secs();
-        println!("Elapsed Timer Duration in Seconds is {}", dur);
+        log::info!("Elapsed Timer Duration in Seconds is {}", dur);
     }
 }
 ```
@@ -719,9 +716,8 @@ driver.enable().unwrap();
 ### Bare-metal version
 
 ```rust
-let peripherals = esp_hal::init(esp_hal::Config::default());
-let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
-let some_output_pin = Output::new(io.pins.gpio3, Level::Low);
+let peripherals = esp_hal::init(Config::default());
+let some_output_pin = Output::new(peripherals.GPIO3, Level::Low);
 let mut ledc = Ledc::new(peripherals.LEDC);
 ledc.set_global_slow_clock(LSGlobalClkSource::APBClk);
 let ledctimer = ledc.get_timer::<LowSpeed>(ledc::timer::Number::Timer0);
@@ -745,7 +741,7 @@ channel0.configure(channel::config::Config {
 
 Serial communication is a method of transmitting data sequentially over a single wire or a pair of wires, sending one bit at a time. This contrasts with parallel communication, where multiple bits are transmitted simultaneously across multiple channels. Serial communication is favored in embedded systems, microcontrollers, and various electronic devices due to its simplicity, reliability, and efficiency. The two primary modes of serial communication are I2C (Inter-Integrated Circuit) and SPI (Serial Peripheral Interface), each with its own advantages. I2C is a synchronous protocol designed for communication between microcontrollers and peripheral devices, offering a smaller footprint but lower bandwidth compared to SPI. SPI, also synchronous, is commonly used for short-distance communication between microcontrollers and peripherals, providing higher speed and bandwidth.
 
-UART stands for Universal Asynchronous Receiver/Transmitter and is a widely used serial communication interface that transmits and receives data asynchronously. This means that UART communication does not rely on a shared clock signal between the transmitter and receiver. Instead, both devices must agree on a specific baud rate—the number of bits transmitted per second—to ensure accurate data transmission. UARTs are prevalent in computers, microcontrollers, and embedded systems for communicating with other devices or computers over serial connections. In the ESP32-C3 microcontroller, UART is utilized for serial monitoring, enabling functionalities such as the `println!()` macro for debugging and logging.
+UART stands for Universal Asynchronous Receiver/Transmitter and is a widely used serial communication interface that transmits and receives data asynchronously. This means that UART communication does not rely on a shared clock signal between the transmitter and receiver. Instead, both devices must agree on a specific baud rate—the number of bits transmitted per second—to ensure accurate data transmission. UARTs are prevalent in computers, microcontrollers, and embedded systems for communicating with other devices or computers over serial connections. In the ESP32-C3 microcontroller, UART is utilized for serial monitoring, enabling functionalities such as the `log::info!()` macro for debugging and logging.
 
 A UART communication channel typically consists of two main components: a transmitter and a receiver connected via a single wire for each direction. The transmitter converts parallel data from the device into a serial format, adding start and stop bits to indicate the beginning and end of each data packet. The receiver then converts the incoming serial data back into a parallel format for the device to process. UART communication can operate in full-duplex mode, allowing simultaneous transmission and reception of data using separate wires for each direction, or in half-duplex mode, where data transmission and reception occur alternately over a single wire.
 
@@ -835,12 +831,11 @@ i2c_driver.read(0x65, &mut buf, BLOCK).unwrap();
 ### Bare-metal version
 
 ```rust
-let peripherals = esp_hal::init(esp_hal::Config::default());
-let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+let peripherals = esp_hal::init(Config::default());
 
-let uart_tx = Output::new(io.pins.gpio21, Level::Low);
+let uart_tx = Output::new(peripherals.GPIO21, Level::Low);
 
-let uart_rx = Input::new(io.pins.gpio20, Pull::Up);
+let uart_rx = Input::new(peripherals.GPIO20, Pull::Up);
 
 let uart_config = Config {
     baudrate: 115200,
@@ -865,13 +860,11 @@ let mut buf = [0_u8; 1];
 uart.read(&mut buf).unwrap();
 
 
-let i2c = I2c::new(
-    peripherals.I2C0,
-    io.pins.gpio1,
-    io.pins.gpio2,
-    100u32.kHz(),
-);
-
+let i2c = I2c::new(peripherals.I2C0, master::Config::default())
+        .unwrap()
+        .with_sda(peripherals.GPIO1)
+        .with_scl(peripherals.GPIO2);
+        
 i2c.write(0x65, &[25]).unwrap();
 
 let mut buf = [0_u8; 1];
@@ -941,7 +934,7 @@ while ntp.get_sync_status() != SyncStatus::Completed {
     // Wait or perform other tasks
 }
 let current_time = SystemTime::now();
-println!("Synchronized System Time: {:?}", current_time);
+log::info!("Synchronized System Time: {:?}", current_time);
 ```
 
 # Setup
@@ -956,9 +949,14 @@ println!("Synchronized System Time: {:?}", current_time);
 ```rust
 cargo install espup
 espup install
+cat espup install >> .profile
+sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
 cargo install ldproxy
-cargo install espflash
+cargo install esp-generate
+sudo apt install libssl-dev openssl pkg-config
 cargo install cargo-generate
+cargo install cargo-espflash
+cargo install espflash
 ```
 
 - Set up the environment variables
