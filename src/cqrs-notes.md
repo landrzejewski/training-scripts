@@ -6,409 +6,214 @@
 4. Korzyści, kompromisy i typowe wyzwania wdrożeniowe
 5. Praktyczne wskazówki, narzędzia oraz podsumowanie rekomendacji
 
-### Slajd 2: Problem klasycznych architektur CRUD
+### Slajd 2: Ograniczenia podejścia CRUD
 
-Klasyczne podejście CRUD staje się problematyczne w rozbudowanych systemach. Wymusza korzystanie z jednego modelu 
-danych do zapisu i odczytu, co prowadzi do kompromisów i utraty przejrzystości. Wraz z rozwojem funkcji model staje się
-trudny w utrzymaniu i bardziej podatny na błędy. Długie zapytania SQL, typowe dla raportów, mogą blokować dostęp do
-danych i spowalniać system. Utrudnia to skalowanie, bo wiele operacji opiera się na jednej bazie. Logika biznesowa jest
-rozproszona po wielu warstwach, co komplikuje testowanie i utrzymanie. CRUD nie odzwierciedla dobrze procesów biznesowych,
-przez co trudniej zrozumieć zmiany i ich kontekst. Relacyjna baza danych staje się krytycznym punktem – jej awaria może 
-zatrzymać cały system.
+Podejście CRUD w złożonych systemach szybko staje się trudne w utrzymaniu i ogranicza możliwości skalowania. Wspólny 
+model danych dla operacji zapisu i odczytu wymusza kompromisy, obniża przejrzystość oraz zwiększa podatność na błędy. 
+Z biegiem czasu logika biznesowa rozprasza się pomiędzy warstwami aplikacji, co utrudnia jej zrozumienie, testowanie i 
+rozwój. Długotrwałe transakcje, często występujące przy raportowaniu, mogą blokować dostęp do bazy danych i spowalniać 
+działanie systemu. W efekcie relacyjna baza danych staje się wąskim gardłem całego rozwiązania.
 
-### Slajd 3: Command-Query Separation (CQS) – fundament
+### Slajd 3: Command-Query Separation (CQS)
 
-Zasada CQS zakłada podział metod na dwie grupy: komendy (zmieniają stan) i zapytania (tylko odczytują dane). Dzięki
-temu unika się niejasnych metod, które robią jedno i drugie, co ułatwia analizę i debugowanie. Zapytania nie mają skutków
-ubocznych, więc można je bezpiecznie powtarzać, keszować i uruchamiać równolegle. Komendy zwracają jedynie potwierdzenie
-lub błąd, co czyni intencje jasnymi. Pomysł ten pochodzi od Bertranda Meyera, a spopularyzowali go m.in. Martin Fowler i
-środowisko DDD. Dziś CQS jest szeroko stosowane w CQRS, mikroserwisach i event sourcingu. Oddzielenie komend i zapytań
-upraszcza testy i zmniejsza potrzebę mockowania. Interfejsy są bardziej zrozumiałe, a zespołowi łatwiej ogarnąć
-zależności i skutki działań. Systemy oparte na CQS są bardziej modularne, testowalne i łatwiejsze w utrzymaniu.
+Zasada Command-Query Separation (CQS) wprowadza wyraźne rozróżnienie między metodami zmieniającymi stan systemu (komendy)
+a tymi, które jedynie odczytują dane (zapytania). Dzięki temu unika się niejednoznacznych operacji pełniących obie funkcje 
+jednocześnie, co znacznie ułatwia analizę, testowanie i debugowanie kodu. Zapytania, jako operacje bez skutków ubocznych, 
+mogą być bezpiecznie powtarzane, cachowane i uruchamiane równolegle. Komendy natomiast zwracają jedynie potwierdzenie wykonania 
+lub informację o błędzie, co sprawia, że ich działanie jest przewidywalne i przejrzyste. Podejście to upraszcza API oraz
+poprawia czytelność i ułatwia zrozumienie rozwiązania.
 
-### Slajd 4: CQS – korzyści praktyczne
+### Slajd 4: Od CQS do CQRS
 
-Zasada CQS przynosi wiele praktycznych korzyści. Jasny podział metod pokazuje, czy dana operacja zmienia stan systemu,
-czy tylko odczytuje dane – ułatwia to zrozumienie i nawigację po kodzie. Programista nie musi zaglądać do wnętrza każdej
-metody. Zapytania, jako czyste funkcje, można łatwo testować bez mocków, co upraszcza testy i obniża koszty ich utrzymania.
-Komendy nie kolidują z zapytaniami, co pozwala bezpiecznie uruchamiać kod równolegle. Nowi członkowie zespołu szybciej się
-wdrażają, bo API jest bardziej czytelne. CQS może być też wstępem do pełnego CQRS – pozwala na stopniowe zmiany w
-architekturze bez przebudowy całego systemu. Dzięki temu systemy są bardziej skalowalne i łatwiejsze w rozwoju.
+CQRS (Command Query Responsibility Segregation) to wzorzec architektoniczny, który rozwija ideę CQS, przenosząc rozdział 
+operacji zapisu i odczytu na poziom całej architektury systemu. Komendy modyfikują stan i generują zdarzenia, które stają
+się głównym źródłem prawdy. Zapytania natomiast opierają się na dedykowanych, zoptymalizowanych projekcjach danych, 
+tworzonych z myślą o konkretnych potrzebach użytkownika. Dzięki temu możliwe jest zastosowanie różnych technologii storage po 
+obu stronach architektury, co zwiększa elastyczność, skalowalność i wydajność. CQRS zakłada spójność ostateczną 
+(eventual consistency), co oznacza, że dane po stronie odczytu mogą być chwilowo niespójne, ale są synchronizowane w 
+sposób kontrolowany. Podejście oparte na zdarzeniach oraz modularna struktura rozwiązania  ułatwiają rozwój, testowanie i 
+utrzymanie złożonych systemów.
 
-### Slajd 5: CQS – wyzwania i ograniczenia
+### Slajd 5: Oddzielenie modeli zapisu i odczytu
 
-Mimo wielu zalet, CQS wiąże się też z pewnymi trudnościami. Języki programowania nie wymuszają jej stosowania – zależy 
-to od dyscypliny zespołu. Łatwo przez nieuwagę wprowadzić efekt uboczny do zapytania, np. zapis loga, co zaburza spójność. 
-W małych projektach CQS może być przesadą – dodatkowe klasy i interfejsy zwiększają złożoność bez wyraźnych korzyści.
-Trzeba więc ocenić, czy separacja rzeczywiście się opłaca. CQS nie rozwiązuje też problemów wydajności, np. blokad bazy –
-potrzebne są inne techniki, jak sharding czy kolejki. Sama zasada dotyczy głównie metod i klas, nie obejmuje całej architektury,
-dlatego często traktuje się ją jako wstęp do CQRS. Jej skuteczność zależy od spójnego i przemyślanego wdrożenia,
-dopasowanego do skali i złożoności projektu.
+Rozdzielenie modeli zapisu i odczytu pozwala precyzyjnie dostosować każdą część systemu do jej roli. Model zapisu koncentruje 
+się na logice biznesowej i walidacji danych, natomiast model odczytu służy do budowy zoptymalizowanych widoków, 
+dopasowanych do potrzeb interfejsu użytkownika lub API. Taka separacja zmniejsza zależności między warstwami, 
+co przyspiesza rozwój, upraszcza testowanie i ogranicza ryzyko wprowadzania błędów. Projekcje tworzone na podstawie zdarzeń 
+można elastycznie modyfikować lub odtwarzać bez ingerencji w dane domenowe. 
 
-### Slajd 6: Ewolucja od CQS do CQRS
+### Slajd 6: Niezależne skalowanie odczytu zapisu
 
-CQRS rozwija zasadę CQS, przenosząc ją na poziom całej architektury. Oddziela logikę zapisu i odczytu nie tylko metodami,
-ale też modelami, warstwami, a czasem bazami danych. Część zapisu skupia się na spójności i walidacji, a odczyt – na
-szybkości i elastyczności, często z użyciem denormalizacji. Obie strony można skalować niezależnie: odczyt przez replikację,
-zapis przez transakcje lub kolejki. CQRS dobrze współgra z podejściem event-driven i mikroserwisami – zdarzenia ułatwiają
-komunikację i podział odpowiedzialności. Architektura wprowadza jednak nowe elementy, jak event bus, projekcje czy sagi,
-co zwiększa elastyczność, ale też złożoność. CQRS wymaga dojrzałości zespołu i dobrej dokumentacji. Nie pasuje do każdej
-aplikacji, ale w złożonych systemach z dużą liczbą operacji może znacząco poprawić wydajność, czytelność i skalowalność.
+CQRS pozwala na niezależne skalowanie odczytu i zapisu, co zwiększa elastyczność systemu. Odczyty, które zwykle dominują w 
+ruchu (nawet 90%), można skalować horyzontalnie poprzez replikację, cache (np. Redis) lub CDN, co redukuje obciążenie 
+głównej bazy i zapewnia niskie opóźnienia. Zapis skaluje się selektywnie, np. przez sharding po ID klienta, 
+umożliwiając równoległe przetwarzanie operacji. Oddzielenie tych warstw eliminuje problem blokowania – długie zapytania 
+nie wpływają na zapisy, co zmniejsza ryzyko locków i deadlocków. Replikacja danych w różnych regionach pozwala lokalnie 
+serwować treści, poprawiając szybkość działania aplikacji. Dodatkowo CQRS umożliwia lepsze zarządzanie kosztami oraz 
+niezależne wdrażanie nowych funkcji, co przyspiesza rozwój systemu.
 
-### Slajd 7: CQRS – definicja
-
-CQRS to wzorzec architektoniczny oparty na rozdzieleniu zapisu i odczytu. Komponenty zajmują się albo zmianą stanu (komendy),
-albo odczytem danych (zapytania), nigdy obiema funkcjami naraz. Strona zapisu waliduje komendy, wykonuje logikę i emituje
-zdarzenia – są one głównym źródłem prawdy. Strona odczytu tworzy projekcje, czyli uproszczone widoki danych dopasowane do
-potrzeb użytkownika, co przyspiesza zapytania. Obie części mogą korzystać z różnych technologii – np. SQL do zapisu, NoSQL
-lub cache do odczytu – co pozwala lepiej spełniać wymagania wydajnościowe. CQRS zakłada model „eventual consistency” – dane
-między zapisem a odczytem są synchronizowane z opóźnieniem, ale to opóźnienie da się kontrolować. Dzięki temu można precyzyjnie
-skalować system zgodnie z rzeczywistym obciążeniem. CQRS wspiera podejście event-driven, w którym każde zdarzenie może wywołać
-dalsze akcje. To zwiększa modularność, przejrzystość i ułatwia utrzymanie systemu w dłuższym czasie.
-
-### Slajd 8: CQRS – główne założenia
-
-CQRS opiera się na założeniu, że model zapisu i odczytu powinny być rozdzielone. Dzięki temu logika domenowa skupia się 
-wyłącznie na regułach biznesowych, a odczyt – na potrzebach UI, często przy użyciu prostych, zdenormalizowanych modeli.
-Ponieważ większość operacji to odczyty, można je skalować niezależnie, bez wpływu na resztę systemu. Komendy przechodzą
-przez dokładną walidację i są wykonywane w transakcjach zgodnych z ACID, co zapewnia spójność. Odczyt opiera się na
-projekcjach tworzonych na podstawie zdarzeń, co eliminuje potrzebę łączenia danych w locie. Komunikacja przez zdarzenia
-zwiększa niezawodność i pozwala na luźne powiązania między komponentami. Można też stosować różne technologie po obu stronach,
-dopasowane do konkretnych potrzeb. CQRS pozwala lepiej zarządzać złożonością, optymalizować koszty i budować systemy
-skalowalne, elastyczne i bezpieczne w długim okresie.
-
-### Slajd 9: Oddzielenie modeli zapisu i odczytu
-
-Rozdzielenie modeli zapisu i odczytu to podstawowa cecha CQRS, pozwalająca dopasować każdą warstwę do jej roli. Model 
-zapisu zawiera tylko dane potrzebne do logiki biznesowej i walidacji – jest znormalizowany i skupiony na regułach domeny. 
-Model odczytu natomiast buduje widoki dopasowane do UI lub API – może być nadmiarowy i zoptymalizowany pod konkretne 
-zapytania. Dzięki temu zmiany po jednej stronie (np. w widokach) nie wymagają modyfikacji po drugiej, co przyspiesza 
-rozwój i zmniejsza ryzyko błędów. Projekcje tworzone na podstawie zdarzeń można łatwo odtworzyć lub zmodyfikować bez 
-wpływu na dane biznesowe. Oddzielne modele pozwalają też używać różnych technologii – np. relacyjna baza do zapisu, 
-a szybki silnik wyszukiwania do odczytu. Ułatwia to skalowanie i szybkie reagowanie na zmiany. Read Model może być często 
-zmieniany, bez ryzyka naruszenia stabilnej logiki zapisów. Takie podejście skraca czas wdrożeń, zwiększa 
-bezpieczeństwo i ułatwia zarządzanie złożonością w dynamicznych systemach.
-
-### Slajd 10: Separation of Concerns w skali systemu
-
-Zasada Separation of Concerns w CQRS umożliwia podział odpowiedzialności na poziomie całego systemu. Zespół od zapisu 
-skupia się na logice biznesowej i integralności danych, a zespół odczytu – na szybkości działania i dopasowaniu danych 
-do widoków. Dzięki temu każdy zespół specjalizuje się w swoim obszarze, co upraszcza pracę i zmniejsza złożoność poznawczą.
-Testy logiki biznesowej są niezależne od interfejsu, co pozwala unikać rozbudowanego mockowania. Częstsze wdrożenia po
-stronie odczytu nie zagrażają stabilności zapisów, co ułatwia szybkie reagowanie na potrzeby użytkowników. Problemy z
-wydajnością zapytań nie blokują zapisu – każda warstwa ma własne SLA i monitoring. Takie rozdzielenie wspiera mikroserwisy,
-gdzie każda odpowiedzialność może być obsługiwana przez osobny serwis i zespół, bez ryzyka konfliktów. CQRS działa więc nie
-tylko jako wzorzec techniczny, ale i organizacyjny – porządkuje kod i usprawnia procesy wytwórcze, co zwiększa elastyczność,
-jakość i szybkość rozwoju systemu.
-
-### Slajd 11: Poliglotyczna persystencja
-
-Poliglotyczna persystencja w CQRS polega na używaniu różnych technologii baz danych dla zapisu i odczytu, dopasowanych do 
-ich specyficznych potrzeb. Write Model zwykle korzysta z relacyjnej bazy z gwarancjami ACID – idealnej do walidacji i transakcji. 
-Read Model może opierać się na rozwiązaniach jak Elasticsearch, Redis czy GraphQL subscriptions, zoptymalizowanych pod szybkie i 
-elastyczne zapytania. Analizy można prowadzić w osobnej hurtowni danych (np. ClickHouse, BigQuery), bez obciążania bazy operacyjnej.
-Kluczową zaletą jest możliwość niezależnego rozwoju każdej części – zmiana technologii odczytu nie wymusza modyfikacji zapisu. 
-Ułatwia to eksperymenty, wdrażanie zmian i ogranicza ryzyko. Dodatkowo pozwala optymalizować koszty: odczyt może działać na 
-tańszych rozwiązaniach, a zapis pozostać na bardziej niezawodnej, ale kosztowniejszej infrastrukturze. Takie podejście 
-poprawia skalowalność, elastyczność i pozwala lepiej dopasować system do faktycznych potrzeb biznesowych i technicznych.
-
-### Slajd 12: Niezależne skalowanie R/W
-
-Jedną z głównych zalet CQRS jest niezależne skalowanie odczytu i zapisu. Ponieważ odczyty stanowią większość 
-ruchu (nawet 90%), można je łatwo skalować horyzontalnie – przez replikację baz, cache (np. Redis) czy CDN – co 
-zmniejsza obciążenie głównej bazy i pozwala obsłużyć duży ruch z niskim opóźnieniem. Zapis skaluje się selektywnie, 
-np. przez sharding po ID klienta, co umożliwia równoległe przetwarzanie operacji i zwiększa wydajność.
-Rozdzielenie tych warstw eliminuje problem blokowania – długie zapytania nie wpływają na zapisy, co redukuje ryzyko 
-locków i deadlocków. Replikacja odczytu w różnych regionach świata pozwala lokalnie serwować dane, co poprawia 
-szybkość działania aplikacji. CQRS pozwala też lepiej zarządzać kosztami – infrastrukturę dostosowuje się do 
-faktycznego ruchu, unikając przewymiarowania. Ułatwia to rozwój – nowe funkcje można wdrażać niezależnie po jednej ze 
-stron. System staje się dzięki temu bardziej skalowalny, elastyczny i odporny na zmienne obciążenia.
-
-### Slajd 13: Read Model – kluczowe cechy
+### Slajd 7: Read Model
 
 Read Model w CQRS służy wyłącznie do szybkiego i prostego odczytu danych, z myślą o interfejsie użytkownika. Dane są w 
-nim zdenormalizowane i dostosowane do konkretnych widoków, co upraszcza frontend i przyspiesza odpowiedzi. W przeciwieństwie
-do Write Modelu nie zawiera logiki biznesowej, więc łatwo go testować i modyfikować. Aktualizacje odbywają się asynchronicznie
-na podstawie zdarzeń – dane mogą być lekko opóźnione, ale dzięki temu system jest bardziej wydajny. Struktura read modelu
-może być całkowicie niezależna od modelu zapisu – dopasowana do potrzeb raportów czy UI, bez ograniczeń reguł domenowych.
-Największą zaletą jest to, że read model można w każdej chwili usunąć i odbudować ze zdarzeń – nie przechowuje źródłowych
-danych, więc jest nietrwały, ale bezpieczny i elastyczny.
+nim zdenormalizowane i dostosowane do konkretnych widoków, co upraszcza frontend i przyspiesza odpowiedzi. Nie zawiera 
+logiki biznesowej, więc jest prosty w testowaniu i modyfikacji. Aktualizacje odbywają się asynchronicznie na podstawie 
+zdarzeń, co zwiększa wydajność kosztem minimalnych opóźnień. Struktura read modelu jest niezależna od modelu zapisu i 
+dostosowana do potrzeb raportowania czy UI. W połączeniu z Event Sourcing może być w pełni odbudowany 
+ze zdarzeń, co czyni go elastycznym i odpornym na awarie.
 
-### Slajd 14: Write Model – kluczowe cechy
+### Slajd 8: Write Model
 
-Write Model w CQRS to centralne miejsce, gdzie egzekwowana jest logika biznesowa i zapewniana spójność danych. Opiera się 
-na Agregatach – obiektach łączących stan i reguły, które decydują, czy dana komenda może zostać wykonana. Dzięki temu każda 
-operacja w systemie ma jasny kontekst i jest zrozumiała również dla biznesu. Po zatwierdzeniu komendy Agregat emituje zdarzenia, 
-które trafiają do Event Store i stanowią jedyne źródło prawdy o zmianach w systemie. Te zdarzenia uruchamiają dalsze działania,
-jak aktualizacja projekcji czy komunikacja z innymi serwisami. Struktura danych w Write Modelu jest silnie znormalizowana – 
-celem jest dokładne odwzorowanie reguł domenowych, a nie szybki odczyt. Skalowanie odbywa się nie przez replikację, lecz przez
-partycjonowanie strumieni zdarzeń (np. według ID klienta), co pozwala przetwarzać komendy równolegle i wydajnie. Dzięki
-temu Write Model zachowuje spójność i dobrze radzi sobie z dużym ruchem transakcyjnym bez blokad i przeciążeń.
+Write Model w CQRS to miejsce, gdzie koncentruje się logika biznesowa systemu. Opiera się na Agregatach, które łączą stan i
+reguły domenowe, weryfikując poprawność komend przed ich wykonaniem. Po akceptacji komendy Agregat emituje zdarzenia
+zapisywane w Event Store, stanowiące jedyne źródło prawdy o zmianach. Struktura danych jest silnie znormalizowana,
+co pozwala precyzyjnie odwzorować reguły biznesowe, choć nie jest zoptymalizowana pod kątem odczytu. Skalowanie
+Write Modelu odbywa się przez partycjonowanie strumieni zdarzeń, np. według ID klienta, co umożliwia równoległe i
+wydajne przetwarzanie operacji. Dzięki temu model zachowuje spójność, odporność na blokady i dobrą wydajność przy dużym ruchu transakcyjnym.
 
-### Slajd 15: Commands – kontrakt intencji
+### Slajd 9: Commands – kontrakt intencji
 
-Komendy w CQRS to jednoznaczne instrukcje, które wyrażają intencje użytkownika – np. „ZmieńEmailKlienta” czy „DezaktywujProdukt”.
-Dzięki swojej formie są czytelne zarówno dla programistów, jak i osób biznesowych. Zawierają tylko niezbędne 
-dane (np. ID i nowe wartości), co zmniejsza ryzyko błędów i chroni przed nieautoryzowanymi zmianami. Komenda może zostać odrzucona, 
-jeśli narusza reguły domenowe lub wersja danych się nie zgadza – zapobiega to utracie spójności. Komendy nie zwracają pełnych
-danych domenowych – jedynie potwierdzenie lub błąd. Upraszcza to API i przenosi obsługę reakcji do interfejsu. Każda komenda
-powinna mieć unikalny identyfikator, by zapewnić idempotencję – nawet jeśli zostanie wysłana kilka razy, system rozpozna
-duplikat i nie powtórzy operacji. To ważne w środowiskach rozproszonych, gdzie komunikaty mogą się powielać. Komendy nadają
-operacjom wyraźny kontekst, porządkują interakcję z domeną i wzmacniają odporność systemu na błędy.
+Komendy w CQRS to jednoznaczne instrukcje wyrażające intencje użytkownika, takie jak „ZmieńEmailKlienta” czy „DezaktywujProdukt”. 
+Są czytelne dla programistów i osób biznesowych, zawierając wyłącznie niezbędne dane, co zmniejsza ryzyko błędów i nadużyć. 
+Komenda może zostać odrzucona, jeśli narusza reguły domenowe lub wersja danych jest nieaktualna, co chroni spójność systemu. 
+Zamiast pełnych danych zwracają jedynie potwierdzenie lub błąd, upraszczając API. Każda komenda powinna mieć unikalny 
+identyfikator, by zapewnić idempotencję – kluczową w środowiskach rozproszonych. Komendy nadają operacjom jasny 
+kontekst i wzmacniają odporność systemu na błędy i duplikacje.
 
-### Slajd 16: Queries – kontrakt odczytu
+### Slajd 10: Queries – kontrakt odczytu
 
-Queries w CQRS służą wyłącznie do odczytu danych – nie zmieniają stanu systemu, co czyni je bezpiecznymi, przewidywalnymi i
-łatwymi do testowania. Można je wywoływać wielokrotnie bez skutków ubocznych, co sprzyja stabilności aplikacji. Zwracają
-dane w formie gotowej do użycia – np. DTO, paginowane listy czy strumienie – co upraszcza frontend i przyspiesza działanie interfejsu.
-Zmiany w strukturze odczytu wymagają modyfikacji tylko handlera zapytania, bez wpływu na model domenowy czy zapis, co pozwala
-szybko iterować i rozwijać UI. Brak efektów ubocznych ułatwia też keszowanie – np. w Redisie, pamięci aplikacji czy
-przez CDN – co zwiększa wydajność i odciąża serwer. Queries są więc lekkie, szybkie i jednoznaczne: „podaj dane”, bez żadnych
-decyzji czy modyfikacji. Taka separacja upraszcza kod, wspiera skalowalność i poprawia jakość całej architektury.
+Queries w CQRS służą wyłącznie do odczytu i nie zmieniają stanu systemu, co czyni je bezpiecznymi, przewidywalnymi i łatwymi
+do testowania. Można je wywoływać wielokrotnie bez skutków ubocznych, co sprzyja stabilności i umożliwia skuteczne cachowanie.
+Zwracają dane w formacie gotowym do użycia, takim jak DTO, listy czy strumienie, co upraszcza frontend i przyspiesza
+działanie interfejsu. Zmiany w zapytaniach nie wpływają na logikę domenową ani zapis, co pozwala elastycznie rozwijać UI.
+Queries są lekkie, szybkie i jednoznaczne – realizują proste żądania typu „podaj dane”, bez decyzji czy logiki biznesowej.
+Taka separacja upraszcza kod, poprawia skalowalność i wspiera jakość architektury systemu.
 
-### Slajd 17: Event Bus – rola i zalety
+### Slajd 11: Event Bus
 
-Event Bus w CQRS odpowiada za asynchroniczne przesyłanie zdarzeń między zapisem a odczytem. Dzięki temu zapis nie czeka na
-przetworzenie zdarzeń – są one publikowane od razu po wykonaniu komendy, a dalsze działania dzieją się niezależnie.
-Komponenty, takie jak projekcje czy integracje, subskrybują zdarzenia i mogą być skalowane osobno, bez wpływu na wydajność zapisu.
-Event Bus zapewnia mechanizmy ponawiania i gwarantuje co najmniej jednokrotne dostarczenie, co zwiększa niezawodność nawet przy
-błędach sieci czy przetwarzania. Dzięki wzorcowi publish/subscribe mikroserwisy nie muszą się znać – wystarczy, że
-obsługują te same zdarzenia, co upraszcza integrację i uniezależnia moduły. Największą zaletą jest możliwość dodawania nowych
-projekcji, usług czy analiz bez zmian w istniejącym kodzie – zgodnie z zasadą Open/Closed. Każda zmiana stanu jest rejestrowana
-jako zdarzenie, co zwiększa przejrzystość systemu i umożliwia logowanie, audyt oraz monitoring. Event Bus sprawia, że architektura
-staje się elastyczna, odporna na błędy i łatwa do rozbudowy w środowiskach rozproszonych.
+Event Bus w CQRS odpowiada za asynchroniczne przekazywanie zdarzeń między komponentami systemu. Po wykonaniu komendy 
+zdarzenia są natychmiast publikowane, a dalsze działania – jak aktualizacja projekcji czy integracje – odbywają 
+się niezależnie. Dzięki wzorcowi publish/subscribe moduły nie są silnie sprzężone, co upraszcza integrację i 
+zwiększa modularność. Event Bus wspiera niezawodność poprzez ponawianie i gwarantowane dostarczenie. 
+Umożliwia też łatwe dodawanie nowych funkcji – projekcji, analiz, powiadomień – bez ingerencji w istniejący kod, zgodnie z regułą open/close.
 
-### Slajd 18: Event Store – jedyne źródło prawdy
+### Slajd 12: Event Store
 
-Event Store w CQRS i event sourcingu to centralny rejestr wszystkich zmian w systemie – każda decyzja biznesowa zapisywana 
-jest jako zdarzenie, w niezmienionej formie i chronologicznym porządku. Nie ma nadpisywania ani kasowania danych – każda
-zmiana zostaje zachowana, co daje pełną audytowalność i możliwość odtworzenia stanu systemu w dowolnym momencie.
-Agregaty nie przechowują stanu w klasyczny sposób – wyliczają go na podstawie zdarzeń, co zapewnia precyzję i przejrzystość
-logiki biznesowej. Event Store działa jako log tylko-do-zapisu (append-only), co ułatwia replikację, backup, 
-partycjonowanie i eliminuje problemy z konkurencyjnymi zapisami. Dzięki pełnej historii możliwa jest analiza zdarzeń z 
-przeszłości (time-travel debug), co pomaga w diagnostyce, audycie i spełnieniu wymagań compliance. Event Store może też 
-pełnić rolę kolejki – zapis i publikacja zdarzenia są atomowe, więc nie potrzeba skomplikowanych mechanizmów transakcyjnych między komponentami.
-To wszystko sprawia, że Event Store jest nie tylko bazą danych, ale sercem całej architektury zdarzeniowej – wspiera skalowalność, 
-odporność i przejrzystość systemu, pozwalając jednocześnie zachować pełną kontrolę nad tym, co się wydarzyło i dlaczego.
+Event Store w CQRS i event sourcingu to centralny rejestr wszystkich zmian w systemie, w którym każda decyzja biznesowa zapisywana 
+jest jako niezmienne zdarzenie w chronologicznym porządku. Zamiast nadpisywać stan, agregaty wyliczają go na podstawie
+sekwencji zdarzeń, co zwiększa przejrzystość i precyzję logiki domenowej. Event Store działa jako struktura 
+tylko-do-zapisu (append-only), co ułatwia replikację, partycjonowanie i eliminuje konflikty przy równoczesnym zapisie. 
+Dzięki pełnej historii możliwe jest odtworzenie dowolnego stanu systemu, analiza zdarzeń w czasie (time-travel debug), 
+audyt oraz spełnienie wymagań compliance. Zapis i publikacja zdarzeń są atomowe, więc Event Store może pełnić również 
+funkcję kolejki zdarzeń, upraszczając komunikację między komponentami. To czyni go nie tylko bazą danych, ale sercem 
+całej architektury zdarzeniowej – wspierającym skalowalność, odporność i pełną obserwowalność systemu.
 
-### Slajd 19: Read-store Projections
+### Slajd 13: Process Managers i Sagi
 
-Projekcje (Read-store Projections) w CQRS służą do utrzymywania aktualnych, zoptymalizowanych widoków odczytu na podstawie
-zdarzeń z Write Modelu. Każde zdarzenie trafia do odpowiedniego handlera, który aktualizuje dane w Read Store – bez
-konieczności sięgania do bazy transakcyjnej. Widoki te są dostosowane do konkretnych potrzeb UI, API czy raportów – często
-zdenormalizowane i gotowe do natychmiastowego użycia, co zwiększa szybkość działania i upraszcza zapytania.
-System mierzy tzw. lag – opóźnienie między zapisem zdarzenia a jego przetworzeniem w projekcji – co pozwala kontrolować 
-świeżość danych i reagować na przeciążenia. W razie potrzeby projekcję można bezpiecznie usunąć i odbudować od zera,
-korzystając z pełnej historii zdarzeń – bez backupów i bez utraty danych. Nowy ekran czy raport to po prostu nowy handler –
-nie wymaga zmian w modelu zapisu ani logice domenowej. Dzięki temu rozwój frontendu jest szybki i bezpieczny. Projekcje 
-są więc lekkie, elastyczne, łatwe w skalowaniu i odporne na awarie – stanowią jeden z kluczowych elementów architektury zdarzeniowej.
+Process Managers i Sagi obsługują złożone, wieloetapowe procesy biznesowe, reagując na zdarzenia i wysyłając komendy w 
+odpowiedniej kolejności. Umożliwiają realizację operacji rozłożonych w czasie, bez blokowania systemu i z
+odpornością na błędy. Zamiast globalnych transakcji stosują lokalne działania i mechanizmy kompensacji, które cofają 
+skutki w razie niepowodzenia. Każda Saga przechowuje własny stan procesu, co pozwala wznawiać go po awarii. Komunikacja 
+między serwisami odbywa się wyłącznie przez zdarzenia, co zmniejsza zależności i zwiększa niezawodność. Kluczowym 
+momentem jest tzw. krok pivot – po jego wykonaniu możliwa jest już tylko kompensacja, co upraszcza podejmowanie decyzji. 
+Istnieją dwa style implementacji: choreografia (bez centralnej kontroli) i orkiestracja (z centralnym koordynatorem). 
+Wszystkie zdarzenia trafiają do Event Store, zapewniając pełną historię, audyt i możliwość odtworzenia procesu.
 
-### Slajd 20: Process Managers i Sagi
-
-Process Managers i Sagi to mechanizmy do obsługi złożonych procesów biznesowych, które obejmują wiele agregatów i kroków.
-Reagują na zdarzenia i wysyłają kolejne komendy, tworząc sekwencję działań rozłożoną w czasie – bez blokowania całego systemu.
-Dzięki temu procesy, takie jak zakupy czy płatności, mogą być realizowane asynchronicznie i odpornie na błędy.
-Zamiast tradycyjnych transakcji obejmujących wiele źródeł danych, Sagi stosują lokalne operacje i kompensacje – w razie 
-błędu można cofnąć wykonane wcześniej kroki, bez potrzeby globalnego commit-u. Każda Saga lub Process Manager przechowuje
-własny stan procesu (np. jako „stan maszyny”), co pozwala wznowić działanie od przerwanego miejsca po awarii.
-Komunikacja między serwisami odbywa się przez zdarzenia, a nie przez bezpośrednie wywołania – to zmniejsza zależności i
-zwiększa niezawodność. Takie podejście dobrze sprawdza się w środowiskach rozproszonych i mikroserwisach, pozwalając budować
-systemy elastyczne, skalowalne i odporne na awarie.
-
-### Slajd 21: CQRS + Event Sourcing – synergia
-
-Połączenie CQRS i Event Sourcing daje silną, komplementarną architekturę. CQRS wyznacza miejsca powstawania zdarzeń 
-(po komendach w Write Modelu) oraz ich konsumpcji (projekcje, integracje), co zapewnia przejrzystość i kontrolę nad zmianami.
-Event Sourcing z kolei zapisuje każdą zmianę jako trwałe zdarzenie, tworząc pełną historię systemu bez potrzeby dodatkowego audytu.
-Dzięki temu Read Model można łatwo odbudować – wystarczy ponownie przetworzyć strumień zdarzeń. Każde zdarzenie może być użyte
-przez wiele projekcji, co umożliwia dodawanie nowych widoków lub raportów bez ingerencji w logikę zapisu – wystarczy nowy handler.
-Wspiera to zasadę Open/Closed i ułatwia rozwój bez ryzyka regresji. CQRS daje skalowalność i separację odpowiedzialności,
-a Event Sourcing – trwałość, pełny audit-trail i możliwość przywrócenia stanu systemu. Razem tworzą elastyczną i odporną
-architekturę, idealną dla nowoczesnych systemów rozproszonych, gdzie dane muszą być nie tylko aktualne, ale i w pełni śledzalne.
-
-### Slajd 22: Event Sourcing – definicja
+### Slajd 14: Event Sourcing
 
 Event Sourcing to wzorzec, w którym stan systemu wynika nie z bieżących wartości w bazie, lecz z sekwencji zdarzeń
 opisujących fakty, które już zaszły – np. „ZamówienieWysłane” czy „ProduktWycofany”. Zdarzenia są trwałe, niezmienne
 i zapisywane w kolejności ich wystąpienia, co tworzy pełną, audytowalną historię zmian. Zamiast aktualizować dane, system
-zapisuje nowe zdarzenia, które pokazują, jak stan ewoluował. Agregaty odtwarzają swój stan poprzez przetworzenie własnego
-strumienia zdarzeń. Dla wydajności można stosować snapshoty – zapis aktualnego stanu, od którego odtwarzanie jest szybsze.
+zapisuje nowe zdarzenia, które pokazują, jak stan ewoluował. Agregaty odtwarzają swój stan poprzez przetworzenie 
+strumienia zdarzeń. Dla poprawienia wydajności można stosować snapshoty – zapis aktualnego stanu, od którego odtwarzanie jest szybsze.
 Nie potrzeba pól typu `updated_at` – sam Event Store pełni rolę dziennika zmian. Zdarzenia mogą być też wykorzystywane
 później, np. do analiz, raportów, prognoz czy rekomendacji – bez zmian w logice domenowej. Dzięki temu system staje się w
 pełni śledzalny, zrozumiały i gotowy do dalszego rozwoju opartego na rzeczywistych danych z przeszłości.
 
-### Slajd 23: Zdarzenia domenowe – charakterystyka
+### Slajd 15: CQRS + Event Sourcing
 
-Zdarzenia domenowe w CQRS i event sourcingu to trwałe fakty opisujące to, co już się wydarzyło – np. „ZamówienieZłożone” czy
-„PłatnośćPotwierdzona”. Ich nazwy zawsze odnoszą się do przeszłości, co eliminuje niejasności i jasno oddziela je od intencji
-(komend). Payload zawiera tylko potrzebne dane – nie pełne encje – co zmniejsza zależności między komponentami i ułatwia rozwój.
-Zdarzenia są wersjonowane i uporządkowane, co pozwala systemowi działać z różnymi wersjami równocześnie, bez ryzyka przerwań.
-Można je kodować w formatach jak JSON (czytelność) czy Protobuf (wydajność), pod warunkiem zachowania kompatybilności schematów.
-Jedno zdarzenie może wywołać wiele reakcji: aktualizację projekcji, wysłanie powiadomienia, integrację z zewnętrznym systemem itd.
-Bez bezpośrednich zależności między modułami, co zapewnia luźne powiązania i elastyczny rozwój. Zdarzenia stają się więc głównym
-mechanizmem komunikacji w systemie – czytelnym, stabilnym i łatwym do rozbudowy.
+Połączenie CQRS i Event Sourcing tworzy silną, komplementarną architekturę idealną dla systemów rozproszonych. 
+CQRS precyzyjnie określa momenty powstawania i konsumpcji zdarzeń, zapewniając kontrolę i przejrzystość zmian. 
+Event Sourcing zapisuje każdą zmianę jako trwałe zdarzenie, tworząc pełną historię systemu bez potrzeby dodatkowego 
+audytu. Read Model można łatwo odbudować, przetwarzając ponownie strumień zdarzeń. Te same zdarzenia mogą zasilać wiele 
+niezależnych projekcji, co ułatwia rozwój zgodnie z zasadą Open/Closed. CQRS zapewnia separację odpowiedzialności i 
+skalowalność, a Event Sourcing – trwałość, audytowalność i możliwość przywrócenia stanu. Razem dają elastyczną, 
+odporną i w pełni śledzalną architekturę nowoczesnych aplikacji.
 
-### Slajd 24: Model faktów w czasie
+### Slajd 16: Zdarzenia domenowe
 
-Model faktów w czasie zakłada, że każdy agregat posiada własną oś czasu – uporządkowaną sekwencję zdarzeń z wersją. Dzięki temu
-możliwe jest śledzenie pełnej historii zmian oraz kontrola wersji: jeśli dwie komendy próbują zmodyfikować ten sam agregat
-jednocześnie, system wykryje konflikt i go obsłuży, bez potrzeby globalnych blokad. To zwiększa wydajność i odporność na problemy 
-związane z równoległością. Zapisana historia pozwala też na symulacje typu „co by było, gdyby” – można odtworzyć stan z dowolnego
-momentu i testować alternatywne scenariusze. Strumień zdarzeń nadaje się również bezpośrednio do analityki i uczenia maszynowego –
-dane behawioralne są dostępne bez potrzeby ETL. Zmiany schematu lub widoków nie wymagają migracji danych – wystarczy nowy handler,
-który odczyta te same zdarzenia inaczej. To upraszcza rozwój i minimalizuje ryzyko. Model faktów w czasie łączy elastyczność
-techniczną z silnym wsparciem dla analizy i rozwoju systemów złożonych i długowiecznych.
+Zdarzenia domenowe opisują to, co już się wydarzyło – np. „ZamówienieZłożone” – i zawsze odnoszą się do przeszłości,
+co odróżnia je od komend. Zawierają tylko niezbędne dane, a nie całe encje, co zmniejsza zależności i upraszcza rozwój systemu.
+Zdarzenia są trwałe, uporządkowane i wersjonowane, co pozwala obsługiwać różne wersje bez przerywania działania. Mogą być
+kodowane np. w JSON (dla czytelności) lub Protobuf (dla wydajności), z zachowaniem kompatybilności. Jedno zdarzenie może
+uruchamiać wiele niezależnych reakcji – aktualizacje projekcji, powiadomienia, integracje. Dzięki luźnym powiązaniom moduły
+pozostają niezależne, co zwiększa elastyczność architektury. Zdarzenia stają się głównym mechanizmem komunikacji – stabilnym,
+przejrzystym i łatwym do rozbudowy.
 
-### Slajd 25: Time-travel debugging i audyt
+### Slajd 17: Komendy kontra zdarzenia
 
-Time-travel debugging i audyt to jedne z najcenniejszych korzyści Event Sourcingu. Dzięki zachowanej sekwencji zdarzeń
-można odtworzyć dowolny stan systemu z przeszłości – nawet sprzed miesięcy – co pozwala dokładnie przeanalizować, jak
-doszło do błędu. Ułatwia to diagnozę problemów, tworzenie post-mortem i znacząco przyspiesza debugowanie.
-Pełna historia zdarzeń spełnia też wymogi regulacyjne (np. RODO, GDPR, normy branżowe), zapewniając przejrzystość i możliwość
-śledzenia każdej zmiany. Możliwa jest anonimizacja danych osobowych bez utraty wartości analitycznej, co umożliwia zgodność
-z przepisami przy zachowaniu funkcji audytu i analizy. Taki log pozwala także wykrywać nadużycia – podejrzane wzorce,
-nietypowe działania czy zmiany można analizować z pełną wiedzą, kto i kiedy je wykonał. W efekcie system staje się bardziej
-bezpieczny, odporny na błędy i lepiej przygotowany na wyzwania związane z utrzymaniem, zgodnością i bezpieczeństwem.
+Rozróżnienie między komendami a zdarzeniami to fundament CQRS i Event Sourcingu. Komenda (np. SendInvoice) wyraża intencję
+wykonania akcji w przyszłości i może zostać odrzucona, np. z powodu walidacji, konfliktu wersji lub braku uprawnień.
+Zdarzenie (np. InvoiceSent) to fakt, który już się wydarzył – jest nieodwracalnym zapisem historii systemu. Komendy są w
+trybie rozkazującym i reprezentują zamiar, zdarzenia – w czasie przeszłym – pokazują, co faktycznie zaszło. To pozwala
+biznesowi jasno rozróżnić, co użytkownik chciał, a co faktycznie się stało. Komendy mają unikalne identyfikatory, co
+umożliwia bezpieczne sprawdzanie duplikatów, szczególnie w systemach rozproszonych. To podejście zwiększa przejrzystość,
+odporność na błędy i ułatwia współpracę między techniką a biznesem.
 
-### Slajd 26: Rolling Snapshots – optymalizacja
+### Slajd 18: Zdarzenia jako źródło prawdy i wehikuł czasu
 
-Rolling Snapshots to technika optymalizacji w Event Sourcingu, pozwalająca przyspieszyć odtwarzanie agregatów przy dużej
-liczbie zdarzeń. Snapshot to zapisany stan agregatu po przetworzeniu np. 1000 eventów – zamiast liczyć całą historię od początku,
-system zaczyna od snapshotu i przetwarza tylko nowsze zdarzenia. Skraca to czas ładowania i poprawia wydajność.
-Tworzenie snapshotów odbywa się asynchronicznie, w tle – nie blokuje zapisów ani nie wpływa na bieżące działanie systemu.
-Snapshot nie musi być najnowszy – wystarczy, że pasuje do wersji agregatu, a reszta stanu zostanie uzupełniona z późniejszych zdarzeń.
-Włączenie snapshotowania powinno być decyzją opartą na danych, np. gdy czas odtwarzania przekracza ustalony próg (np. P95).
-Nie warto wdrażać go zbyt wcześnie, by uniknąć zbędnej komplikacji. Dzięki snapshotom system zachowuje wszystkie zalety
-Event Sourcingu – pełną historię, audytowalność – przy lepszej wydajności. To narzędzie inżynierskie, a nie domyślny element architektury.
+Każdy agregat posiada własną oś czasu – chronologiczną sekwencję wersjonowanych zdarzeń, 
+które tworzą kompletną historię zmian. Dzięki temu możliwe jest wykrywanie konfliktów przy równoczesnych modyfikacjach 
+bez stosowania globalnych blokad, co zwiększa wydajność i odporność systemu. Taka architektura pozwala odtworzyć dowolny 
+stan z przeszłości, przeprowadzać symulacje „co by było, gdyby” i testować alternatywne scenariusze bez ryzyka. 
+Mechanizm time-travel debugging ułatwia diagnozowanie błędów, analizę incydentów oraz tworzenie raportów post-mortem. 
+Pełna historia zdarzeń spełnia wymagania audytu i zgodności z przepisami (np. RODO, GDPR), umożliwiając śledzenie każdej 
+zmiany z dokładnością co do czasu i źródła. Dane mogą być wykorzystywane bezpośrednio do analityki czy uczenia maszynowego,
+bez potrzeby klasycznego ETL. Zmiany w strukturze danych nie wymagają migracji – wystarczy nowy handler, który inaczej 
+zinterpretuje te same zdarzenia. Dzięki temu system staje się bardziej przejrzysty, elastyczny i lepiej przygotowany na
+rozwój oraz wymagania regulacyjne.
 
-### Slajd 27: Event Store jako kolejka
+### Slajd 19: Rolling Snapshots
 
-Wykorzystanie Event Store jako kolejki upraszcza komunikację w systemach z Event Sourcingiem i CQRS. Zdarzenie i informacja
-o jego publikacji zapisywane są w jednym fsync, co oznacza, że zapis i wysyłka są atomowe – bez ryzyka utraty danych między
-etapami. Odpada też potrzeba stosowania złożonych transakcji 2PC. Za publikację odpowiada proces chaser, który śledzi kolejne
-zdarzenia i przesyła je do brokera (np. Kafka, RabbitMQ). Dzięki temu zapis komendy kończy się szybciej – system odpowiada
-natychmiast po zapisaniu zdarzenia, a nie po wysyłce, co zmniejsza latencję i zwiększa responsywność.
-Jeśli broker jest chwilowo niedostępny, zapis nadal działa – zdarzenia są bezpiecznie przechowywane w Event Store i zostaną
-opublikowane później. Architektura staje się dzięki temu prostsza, bardziej niezawodna i łatwiejsza w utrzymaniu. Event Store
-pełni wtedy nie tylko rolę magazynu stanu, ale też centralnego kanału integracji – łącząc zapis i propagację zdarzeń w jednym,
-spójnym mechanizmie.
+Rolling Snapshots to technika optymalizacji w Event Sourcingu, która przyspiesza odtwarzanie agregatów w systemach z dużą
+liczbą zdarzeń. Zamiast przeliczać całą historię od początku, system zaczyna od ostatniego snapshotu – zapisanego stanu
+agregatu – i przetwarza tylko nowsze zdarzenia. Dzięki temu ładowanie agregatów staje się szybsze i bardziej wydajne.
+Snapshoty tworzone są asynchronicznie, w tle, bez wpływu na działanie systemu ani blokowania zapisów. Nie muszą być
+najnowsze – wystarczy, że pasują do wersji agregatu, a reszta stanu zostanie uzupełniona dynamicznie. Warto wdrażać
+snapshoty tylko tam, gdzie rzeczywiście występuje problem z czasem odtwarzania, np. powyżej ustalonego progu (jak P95).
+Technika ta pozwala zachować wszystkie zalety Event Sourcingu – historię i audyt – przy wyższej wydajności. Snapshotowanie
+to narzędzie optymalizacyjne, a nie obowiązkowy element architektury.
 
-### Slajd 28: Task-Based UI – odzyskiwanie intencji
+### Slajd 20: Eventual Consistency
 
-Task-Based UI to podejście do projektowania interfejsów, które doskonale współgra z CQRS i architekturą opartą na zdarzeniach.
-Zamiast jednego, ogólnego przycisku „Zapisz wszystko”, interfejs oferuje konkretne, jednoznaczne akcje, takie jak „Anuluj zamówienie”
-czy „Zmień termin spotkania”. Każda z tych akcji generuje odrębną komendę, jasno wyrażającą intencję użytkownika.
-Dzięki temu interfejs jest lepiej dopasowany do języka biznesowego, co ułatwia współpracę między zespołem technicznym i biznesowym.
-Walidacja odbywa się w czasie rzeczywistym – błędne komendy są natychmiast odrzucane, co poprawia ergonomię i skraca czas reakcji użytkownika.
-Nazwy i działania w UI wynikają bezpośrednio z modelu domenowego. Każda komenda jest mała, precyzyjna i idempotentna, co czyni ją
-odporną na błędy i łatwą do testowania – kluczowe cechy w systemach rozproszonych. W efekcie UI nie jest tylko warstwą prezentacji,
-ale aktywną częścią logiki systemu, wzmacniając jego spójność, przejrzystość i niezawodność.
+Eventual Consistency to model, w którym dane nie są spójne natychmiast po zapisie, ale z czasem osiągają zgodność. Projekcje
+aktualizują się asynchronicznie, dlatego UI powinien jasno informować użytkownika o chwilowej niespójności, np. komunikatem
+„Dane są aktualizowane w tle”. W razie błędów możliwe jest automatyczne uruchomienie kompensacji, która przywraca logikę
+biznesową do właściwego stanu. Kluczowe jest monitorowanie opóźnień – jeśli przekroczą ustalony próg (SLA), system powinien
+zareagować, zanim problem dotrze do użytkownika. W zamian za zgodę na tymczasową niespójność zyskujemy wysoką dostępność,
+odporność na awarie i brak globalnych blokad. To podejście zwiększa elastyczność i wydajność nowoczesnych systemów rozproszonych.
 
-### Slajd 29: Komendy kontra zdarzenia – różnice
+### Slajd 21: Wyzwania implementacji CQRS
 
-Różnica między **komendami** a **zdarzeniami** to podstawowy element CQRS i Event Sourcingu.
-* **Komenda** (np. *SendInvoice*) to **intencja** – żądanie wykonania jakiejś akcji w przyszłości. Może zostać odrzucona, np. 
-z powodu błędnej walidacji, konfliktu wersji lub braku uprawnień.
-* **Zdarzenie** (np. *InvoiceSent*) to **fakt**, który **już się wydarzył** i którego nie można cofnąć. Jest trwałym zapisem historii systemu.
+CQRS przynosi wiele korzyści, ale wiąże się też z technicznymi i organizacyjnymi wyzwaniami, które trzeba świadomie kontrolować.
+Rozdzielenie zapisu i odczytu oznacza, że każde zdarzenie musi być spójne zarówno z logiką komendy, jak i z projekcjami – co
+zwiększa liczbę punktów podatnych na błędy. Migracja projekcji wymaga mechanizmów „rebuildu” oraz strategii wersjonowania
+zdarzeń, by uniknąć problemów ze zgodnością danych. Od strony operacyjnej potrzeba nowych kompetencji: DevOps musi zarządzać
+nie tylko bazą, ale też kolejkami, retry, replikacją i monitoringiem lagów. Debugowanie staje się bardziej złożone, bo wymaga
+śledzenia pełnego przepływu – od komendy, przez zdarzenie, po widok. CQRS to narzędzie, nie cel – w prostych systemach CRUD
+jego użycie może wprowadzić niepotrzebną złożoność. Kluczowe jest dopasowanie podejścia do realnej złożoności domeny i konkretnych potrzeb biznesowych.
 
-To rozróżnienie wprowadza porządek:
-* Komendy używają trybu rozkazującego i reprezentują *zamiar*,
-* Zdarzenia są w czasie przeszłym i oznaczają *co rzeczywiście zaszło*.
+### Slajd 26: Wyzwania implementacji Event Sourcing
 
-Biznes może więc jasno rozróżnić, co użytkownik **chciał zrobić**, a co **faktycznie się stało**.
-Dodatkowo, komendy mają unikalne identyfikatory (np. GUID nadawany przez klienta), co pozwala backendowi sprawdzić, czy 
-dana operacja już została wykonana – istotne w środowiskach rozproszonych, gdzie zdarzają się duplikaty.
-To wszystko zwiększa **czytelność, odporność i testowalność** systemu, a także ułatwia współpracę techniczno-biznesową.
+Wdrożenie Event Sourcingu wymaga dojrzałości projektowej i operacyjnej, wykraczającej poza klasyczne modelowanie danych. 
+Zdarzenia są trwałe – raz zapisane nie mogą być edytowane, dlatego ich projektowanie i wersjonowanie musi być przemyślane 
+od początku. Korekta błędu oznacza emisję nowych zdarzeń, co komplikuje logikę i wymaga zachowania kompatybilności wstecznej. 
+Dodatkowym wyzwaniem jest zarządzanie snapshotami i retencją – decyzje dotyczące ich częstotliwości, przechowywania i 
+archiwizacji wpływają na koszty, wydajność i zgodność z regulacjami. Wersjonowanie eventów i kontraktów to osobna odpowiedzialność, 
+szczególnie gdy w systemie działają konsumenci różnych wersji. Testowanie również staje się bardziej złożone – musi 
+obejmować pełen przepływ: komendę, zdarzenie i projekcję. Mimo tych trudności Event Sourcing daje pełną historię, audyt i 
+elastyczność, ale wymaga automatyzacji, dyscypliny i świadomego zarządzania cyklem życia danych.
 
-### Slajd 30: Idempotencja – dlaczego jest potrzebna
-
-Idempotencja to kluczowy mechanizm w architekturach rozproszonych, który zapewnia stabilność działania mimo problemów
-sieciowych i powtórzeń komunikatów. Gdy klient nie wie, czy jego komenda została przetworzona (np. po time-oucie), może
-ją bezpiecznie wysłać ponownie, a system – dzięki unikalnym identyfikatorom (np. GUID) przypisanym każdej komendzie –
-rozpozna duplikat i go zignoruje. Podobnie działają konsumenci zdarzeń, którzy zapisują identyfikatory przetworzonych
-eventów w tabeli `processed_events`, chroniąc system przed skutkami wielokrotnego przetwarzania, takimi jak podwójne
-opłaty czy zduplikowane rekordy. Idempotencja upraszcza też testy end-to-end, pozwalając na wielokrotne uruchamianie
-tych samych scenariuszy bez wpływu na stan systemu, co zwiększa ich niezawodność. Jest również niezbędna przy strategiach
-wdrożeń typu blue/green czy canary, gdzie zdarzenia i komendy mogą dotrzeć do systemu więcej niż raz. Dzięki idempotencji
-system jest odporny na błędy sieciowe, łatwiejszy w utrzymaniu i bezpieczny w warunkach ciągłych zmian.
-
-### Slajd 31: Eventual Consistency – model użytkowy
-
-Eventual Consistency to model spójności, w którym dane nie są od razu aktualne po zapisie, ale z czasem osiągają zgodność,
-co doskonale sprawdza się w rozproszonych i skalowalnych systemach, o ile zostanie poprawnie wdrożony i zakomunikowany
-użytkownikowi. Po wykonaniu komendy widok może być przez chwilę nieaktualny, ponieważ projekcje są aktualizowane
-asynchronicznie — dlatego UI powinno jasno sygnalizować ten stan, np. komunikatem „Dane są aktualizowane w tle”, co zmniejsza
-frustrację i zwiększa zaufanie. W przypadku błędów w dalszym przetwarzaniu (np. w sagach) mogą zostać automatycznie uruchomione
-działania kompensacyjne, które przywracają spójność logiczną. Ważne jest też monitorowanie opóźnienia między zapisem a odczytem —
-jeśli lag przekracza ustalony próg (SLA), należy zareagować, zanim użytkownik zauważy problem. W zamian za zgodę na chwilową
-niespójność system zyskuje wysoką dostępność, odporność na awarie i możliwość działania bez globalnych blokad, co znacznie
-zwiększa jego wydajność i elastyczność.
-
-### Slajd 32: Wyzwania implementacji CQRS
-
-Wdrożenie CQRS przynosi wiele korzyści, ale wiąże się też z technicznymi i organizacyjnymi wyzwaniami, które trzeba
-świadomie kontrolować. Podział na modele zapisu i odczytu oznacza, że każde zdarzenie musi być spójne zarówno z komendą,
-która je wygenerowała, jak i z projekcją, która je przetwarza – zwiększa to liczbę miejsc podatnych na błędy i wymaga
-ścisłej dyscypliny w wersjonowaniu i testach. Szczególną uwagę trzeba poświęcić migracji projekcji – zmiana schematu
-zdarzeń może unieważnić istniejące widoki, dlatego niezbędny jest mechanizm „rebuildu” oraz strategia zarządzania wersjami
-eventów. Od strony operacyjnej DevOps musi utrzymywać więcej niż tylko bazę danych – także kolejki, mechanizmy replikacji
-monitorowanie opóźnień czy retry, co wymaga nowych narzędzi i kompetencji. Debugowanie również staje się bardziej złożone –
-konieczne jest śledzenie pełnego cyklu: od komendy, przez zdarzenie, aż po wynikową projekcję, co wymaga dobrej obserwowalności,
-ale daje też bardzo dokładny wgląd w działanie systemu. Trzeba jednak pamiętać, że CQRS to narzędzie, a nie cel sam w sobie –
-w prostych systemach CRUD jego zastosowanie może być nieuzasadnione i prowadzić do nadmiarowej złożoności. Kluczowe jest więc
-by podejście dopasować do realnej złożoności domeny i faktycznych potrzeb biznesowych.
-
-### Slajd 33: Wyzwania implementacji Event Sourcing
-
-Implementacja Event Sourcingu wiąże się z wieloma wyzwaniami, które wykraczają poza klasyczne modelowanie danych i wymagają
-dojrzałości projektowej oraz operacyjnej. Zdarzenia muszą być dobrze zaprojektowane od początku, bo raz zapisane stają się
-nieusuwalnym elementem systemu – błędów nie da się poprawić edytując dane, jedynym wyjściem jest emisja nowych zdarzeń
-korygujących, co komplikuje logikę i wymaga przemyślanego wersjonowania. Dochodzą do tego wyzwania techniczne: zarządzanie
-snapshotami i retencją danych wymaga decyzji o częstotliwości ich tworzenia, czasie przechowywania i archiwizacji, co ma wpływ
-na koszty, wydajność i zgodność z regulacjami (np. RODO). Wersjonowanie zdarzeń to osobna odpowiedzialność – schema musi być
-wstecznie kompatybilna, bo w systemie mogą działać równolegle konsumenci obsługujący różne wersje tego samego zdarzenia, co
-wymaga dyscypliny w zarządzaniu kontraktami. Testowanie również staje się bardziej złożone – scenariusze muszą obejmować cały
-przepływ: od komendy, przez zapis eventu, aż po aktualizację projekcji, co wydłuża czas testów i podnosi wymagania wobec środowiska
-CI/CD. Mimo tych trudności, Event Sourcing daje ogromne korzyści: pełną historię zmian, audyt, możliwość analiz i elastycznego
-rozwoju, ale jego skuteczne wdrożenie wymaga świadomego podejścia, automatyzacji i czujności na każdym etapie rozwoju systemu.
-
-### Slajd 34: Obserwowalność i monitoring lagów
-
-Obserwowalność i monitoring lagów są kluczowe w systemach opartych na CQRS i Event Sourcingu, gdzie dane propagują się
-asynchronicznie. Każde zdarzenie powinno mieć znacznik czasu i numer sekwencyjny, co pozwala analizować kolejność i czas
-emisji oraz ułatwia debugowanie i ocenę wydajności. Podstawową metryką jest różnica między `current_position`
-(ostatnie zapisane zdarzenie) a `published_position` (ostatnie przetworzone przez Chasera) – wskazuje ona opóźnienie
-Read Modelu względem Write Modelu i może sygnalizować przeciążenie systemu. Aby śledzić pełen przebieg żądania, warto
-stosować `Correlation ID`, który przechodzi przez komendę, zdarzenie i odpowiedź – umożliwia szybkie połączenie przyczyny
-z efektem. Rozproszone trace’y, np. w Jaegerze czy Zipkinie, pokazują przepływ komunikacji w mikroserwisach i pozwalają
-sprawnie wykrywać źródła błędów i spowolnień. Niezbędny jest też automatyczny alerting – system powinien wykrywać, gdy
-lag przekracza ustalony próg SLA i natychmiast powiadamiać zespół, zanim problem stanie się widoczny dla użytkownika.
-Takie podejście zapewnia wysoką dostępność, szybką reakcję na anomalie i stabilność działania systemu pod dużym obciążeniem.
-
-### Slajd 35: Impedance Mismatch a zdarzenia
-
-Impedance mismatch, czyli niezgodność między modelem obiektowym a relacyjnym, to częsty problem w systemach z ORM –
-wymaga mapowania obiektów na tabele, migracji schematów i generuje złożone zależności trudne w utrzymaniu. Event Sourcing
-eliminuje ten problem, bo zdarzenia są natywne dla domeny i przechowywane w niezmienionej formie, bez potrzeby translacji
-na encje czy struktury relacyjne. Aplikacja działa bezpośrednio na liście zdarzeń, co upraszcza logikę, eliminuje problemy
-typu N+1 i zwiększa wydajność przetwarzania w pamięci. Ten sam log może być używany przez systemy BI, analitykę czy modele
-ML – bez potrzeby budowy osobnych pipeline’ów ETL, co zmniejsza koszty i skraca czas wdrożeń. Co ważne, cały zespół pracuje
-na jednym, spójnym modelu – bez konieczności tłumaczenia różnic między bazą, API i logiką, co ułatwia onboarding, poprawia
-komunikację i redukuje liczbę błędów.
-
-### Slajd 36: Saga Pattern – podstawy
-
-Wzorzec Saga to sposób zarządzania transakcjami w systemach rozproszonych, który pozwala bezpiecznie realizować złożone
-operacje przez podział na serię lokalnych, niezależnych kroków. Zamiast jednej globalnej transakcji, każde działanie wykonuje
-się w obrębie konkretnego serwisu, a przepływ kontrolowany jest przez zdarzenia. W razie błędu nie stosuje się klasycznego
-rollbacku, tylko uruchamia kompensacje – czyli akcje cofające skutki wcześniej wykonanych operacji, co pozwala zachować
-spójność bez wspólnej bazy danych. Ważnym punktem jest tzw. krok pivot – po jego wykonaniu proces może być tylko kompensowany,
-nie anulowany, co ułatwia ocenę ryzyka i decyzje biznesowe. Istnieją dwa style implementacji: choreografia (każdy serwis działa
-autonomicznie, reagując na zdarzenia) oraz orkiestracja (centralny komponent steruje kolejnymi krokami). Wszystkie zdarzenia są
-zapisywane w Event Store, co zapewnia pełną historię, audyt i możliwość odtworzenia procesu. Dzięki temu Saga nie tylko porządkuje
-technicznie wieloetapowe operacje, ale też zwiększa przejrzystość, bezpieczeństwo i kontrolę nad procesami biznesowymi.
-
-### Slajd 37: Frameworki i biblioteki – Java
+### Slajd 27: Frameworki i biblioteki – Java
 
 W ekosystemie Java dostępnych jest kilka dojrzałych frameworków wspierających CQRS i Event Sourcing, z których każdy odpowiada
 na inne potrzeby architektoniczne. **Axon Framework** to kompleksowe rozwiązanie z wbudowanym command busem, event store,
@@ -420,7 +225,7 @@ gdzie ważna jest lokalna spójność i niezawodna komunikacja. Wszystkie te nar
 gotowe startery, co przyspiesza konfigurację i rozwój. Wybór zależy od kontekstu: Axon będzie dobrym wyborem dla większych,
 domenowo zorientowanych monolitów, a Lagom lub Eventuate lepiej sprawdzą się w środowiskach rozproszonych z naciskiem na skalowalność i autonomię usług.
 
-### Slajd 38: Frameworki i biblioteki – .NET
+### Slajd 28: Frameworki i biblioteki – .NET
 
 W ekosystemie .NET dostępnych jest wiele narzędzi wspierających CQRS i Event Sourcing, dopasowanych do różnych poziomów
 złożoności. **MediatR** to lekka biblioteka oparta na wzorcu mediatora, która ułatwia separację handlerów komend i zapytań,
@@ -433,7 +238,7 @@ szczególnie przydatna w środowiskach kontenerowych i Kubernetes. CQRS w .NET �
 Azure – **Service Bus**, **Event Grid** i **Azure Functions** pozwalają budować skalowalne, zdarzeniowe systemy w architekturze
 serverless, zgodne z DDD i nowoczesnymi praktykami rozwoju systemów rozproszonych.
 
-### Slajd 39: Frameworki i biblioteki – Python i inne
+### Slajd 29: Frameworki i biblioteki – Python i inne
 
 W świecie Pythona i innych nowoczesnych języków również istnieją narzędzia wspierające CQRS i Event Sourcing, choć zwykle
 są one lżejsze i bardziej elastyczne niż w Java czy .NET. Pythonowa biblioteka **`eventsourcing`** oferuje pełne wsparcie
@@ -447,7 +252,7 @@ przydatne w systemach mikroserwisowych. Niezależnie od języka, kluczowe pozost
 odpowiedzialności, spójność modelu domenowego i dyscyplina w projektowaniu zdarzeń. Wybór narzędzi powinien wynikać z
 realnych potrzeb projektu, a nie technologii samej w sobie.
 
-### Slajd 40: Kryteria decyzji „czy stosować CQRS”
+### Slajd 30: Kryteria decyzji „czy stosować CQRS”
 
 Decyzja o zastosowaniu CQRS powinna wynikać z konkretnych potrzeb systemu, a nie z chęci wdrożenia popularnego wzorca –
 to narzędzie, które przynosi realne korzyści głównie tam, gdzie występuje wysoka złożoność lub duża skala. Gdy system ma
@@ -459,7 +264,7 @@ równoległy rozwój modeli zapisu i odczytu bez wzajemnych kolizji. Jednak w pr
 jedynie wprowadzać niepotrzebną złożoność. Dlatego decyzję o jego wdrożeniu należy podejmować świadomie – na podstawie analizy
 wymagań biznesowych, architektury i możliwości zespołu – jako rozwiązanie konkretnego problemu, a nie cel sam w sobie.
 
-### Slajd 41: Strategia adopcji w istniejącym systemie
+### Slajd 33: Strategia adopcji w istniejącym systemie
 
 Adopcja CQRS i Event Sourcingu w istniejącym systemie powinna przebiegać iteracyjnie i strategicznie, zaczynając od
 obszarów o dużej asymetrii między zapisem a odczytem – np. raportowania czy logów aktywności, gdzie przeważają zapytania, a
@@ -472,7 +277,7 @@ właściwe podejście do projektowania. Warto też od początku wprowadzić moni
 pozwala to nie tylko reagować na problemy, ale też podejmować świadome decyzje o dalszych krokach migracji. Tak prowadzona
 adopcja jest bezpieczna, mierzalna i dostosowana do realnych potrzeb biznesu.
 
-### Slajd 42: Najczęstsze pułapki i anty-wzorce
+### Slajd 34: Najczęstsze pułapki i anty-wzorce
 
 Wdrożenie CQRS i Event Sourcingu przynosi wiele korzyści, ale bez dyscypliny architektonicznej łatwo wpaść w typowe pułapki,
 które zamiast upraszczać – komplikują rozwój systemu. Częstym błędem jest over-engineering, czyli stosowanie CQRS tam, gdzie
@@ -486,7 +291,7 @@ projekcje mogą działać na przestarzałych danych, co prowadzi do niejawnych b
 być integralną częścią architektury, nie dodatkiem. Świadome unikanie tych błędów to fundament skutecznego, stabilnego i
 skalowalnego wdrożenia CQRS i Event Sourcingu.
 
-### Slajd 43: Podsumowanie i rekomendacje
+### Slajd 35: Podsumowanie i rekomendacje
 
 CQRS i Event Sourcing to silne podejścia architektoniczne, które – przy właściwym zastosowaniu – znacząco zwiększają
 elastyczność, przejrzystość i odporność systemu. Oddzielenie komend (intencji), zapytań (odczytu) i zdarzeń (niezmiennych faktów)
