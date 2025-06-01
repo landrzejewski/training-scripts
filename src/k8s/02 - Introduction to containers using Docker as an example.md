@@ -1050,15 +1050,6 @@ docker build -t myrepo/myapp:$VERSION -t myrepo/myapp:$GIT_SHA .
 
 ---
 
-Below are two new sections to append to the tutorial:
-
-1. **Daily Container Administration**, covering log collection, gathering performance metrics, and configuring restart policies.
-2. **Hiding Sensitive Data in Image Building**, showing strategies to keep secrets (API keys, passwords, certificates) out of image layers.
-
-You can insert these sections after **“Cleaning Up and Best Practices”** (or wherever they fit best in your documentation flow).
-
----
-
 ## Daily Container Administration
 
 Even in a simple single-host or small-cluster environment, you’ll want to have a routine to monitor containers, collect 
